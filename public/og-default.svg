@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#0f172a" />
+  <circle cx="980" cy="120" r="220" fill="#4f46e5" opacity="0.35" />
+  <circle cx="180" cy="560" r="180" fill="#6366f1" opacity="0.25" />
+  <rect x="90" y="150" rx="18" width="76" height="76" fill="#4f46e5" />
+  <text x="128" y="205" font-family="Inter, Segoe UI, sans-serif" font-size="46" font-weight="800" fill="#fff" text-anchor="middle">J</text>
+  <text x="190" y="206" font-family="Inter, Segoe UI, sans-serif" font-size="40" font-weight="700" fill="#fff">JobKhoj</text>
+  <text x="90" y="330" font-family="Inter, Segoe UI, sans-serif" font-size="62" font-weight="800" fill="#fff">Find Your Dream Job.</text>
+  <text x="90" y="402" font-family="Inter, Segoe UI, sans-serif" font-size="62" font-weight="800" fill="#a5b4fc">Build Your Future.</text>
+  <text x="90" y="470" font-family="Inter, Segoe UI, sans-serif" font-size="26" fill="#cbd5e1">Thousands of opportunities from companies hiring across India.</text>
+</svg>

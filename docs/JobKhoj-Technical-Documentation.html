@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>JobKhoj — Technical Documentation</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", Roboto, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    color: #1a1d24; font-size: 10.5pt; line-height: 1.6;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+
+  /* ---------- cover ---------- */
+  .cover { height: 92vh; display: flex; flex-direction: column; justify-content: center;
+           border-left: 8px solid #4f46e5; padding-left: 28px; page-break-after: always; }
+  .brand { font-size: 40pt; font-weight: 800; letter-spacing: -1.5px; color: #111827; margin: 0; }
+  .brand span { color: #4f46e5; }
+  .subtitle { font-size: 15pt; color: #4b5563; margin: 8px 0 4px; font-weight: 500; }
+  .tagline { font-size: 11pt; color: #6b7280; margin-bottom: 34px; }
+  .meta { display: flex; gap: 40px; margin-top: 26px; border-top: 1px solid #e5e7eb; padding-top: 18px; }
+  .meta div { font-size: 9.5pt; color: #6b7280; }
+  .meta strong { display: block; color: #111827; font-size: 12pt; margin-top: 2px; }
+  .badge { display: inline-block; background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe;
+           padding: 3px 10px; border-radius: 999px; font-size: 9pt; font-weight: 600; margin-right: 6px; }
+
+  /* ---------- structure ---------- */
+  h1 { font-size: 19pt; color: #111827; margin: 0 0 4px; padding-top: 22px;
+       border-top: 3px solid #4f46e5; page-break-after: avoid; }
+  h1:first-of-type { border-top: none; padding-top: 0; }
+  h2 { font-size: 13pt; color: #1f2937; margin: 22px 0 8px; page-break-after: avoid; }
+  h3 { font-size: 11pt; color: #374151; margin: 16px 0 6px; page-break-after: avoid; }
+  p { margin: 7px 0; }
+  .section { page-break-inside: auto; }
+  .lead { color: #4b5563; font-size: 11pt; margin-bottom: 14px; }
+  .page-break { page-break-before: always; }
+
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 9.5pt;
+          page-break-inside: auto; }
+  th, td { border: 1px solid #e5e7eb; padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: #f3f4f6; font-weight: 600; color: #111827; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  td.c { text-align: center; }
+  .ok { color: #047857; font-weight: 700; }
+
+  code, .mono { font-family: "Cascadia Code", Consolas, "Courier New", monospace; font-size: 9pt;
+                background: #f3f4f6; padding: 1px 5px; border-radius: 3px; color: #374151; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 13px 15px; border-radius: 7px;
+        font-family: "Cascadia Code", Consolas, monospace; font-size: 8.7pt; line-height: 1.55;
+        overflow: hidden; white-space: pre; page-break-inside: avoid; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 11px; margin: 12px 0 16px; }
+  .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 11px 13px; background: #fff; }
+  .card .k { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .7px; color: #6b7280; }
+  .card .v { font-size: 17pt; font-weight: 700; color: #4f46e5; line-height: 1.3; }
+  .card .d { font-size: 8.8pt; color: #6b7280; }
+
+  .note { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 9px 13px;
+          border-radius: 0 6px 6px 0; margin: 12px 0; font-size: 9.7pt; }
+  .good { background: #ecfdf5; border-left: 4px solid #10b981; padding: 9px 13px;
+          border-radius: 0 6px 6px 0; margin: 12px 0; font-size: 9.7pt; }
+
+  ul, ol { margin: 7px 0; padding-left: 20px; }
+  li { margin: 3px 0; }
+  .toc { columns: 2; column-gap: 34px; font-size: 10pt; }
+  .toc div { padding: 4px 0; border-bottom: 1px dotted #d1d5db; break-inside: avoid; }
+  .toc b { color: #4f46e5; }
+  .foot { margin-top: 26px; padding-top: 10px; border-top: 1px solid #e5e7eb;
+          font-size: 8.5pt; color: #9ca3af; }
+</style>
+</head>
+<body>
+
+<!-- ==================== COVER ==================== -->
+<div class="cover">
+  <div>
+    <span class="badge">React 18</span>
+    <span class="badge">Vite 6</span>
+    <span class="badge">Tailwind 4</span>
+    <span class="badge">Mock API</span>
+  </div>
+  <h1 class="brand">Job<span>Khoj</span></h1>
+  <div class="subtitle">Technical Documentation &amp; Technology Report</div>
+  <div class="tagline">Full-stack job portal &mdash; job seekers, recruiters and administrators in one platform.</div>
+  <div class="meta">
+    <div>Document type<strong>Project / Technology Report</strong></div>
+    <div>Frontend<strong>React + Vite (SPA)</strong></div>
+    <div>Backend layer<strong>Mock data + REST ready</strong></div>
+    <div>Date<strong>06 October 2026</strong></div>
+  </div>
+  <div style="margin-top:30px;font-size:9.5pt;color:#6b7280;">
+    <span class="ok">&#10003;</span> 241 automated checks passing &nbsp;&middot;&nbsp;
+    <span class="ok">&#10003;</span> Lint clean &nbsp;&middot;&nbsp;
+    <span class="ok">&#10003;</span> Production build successful
+  </div>
+</div>
+
+<!-- ==================== 1. OVERVIEW ==================== -->
+<div class="section">
+<h1>1. Project Overview</h1>
+<p class="lead">JobKhoj is a single-page application implementing a complete job-portal workflow for three
+roles: job seeker, recruiter and administrator. The interface, business rules, routing and data layer are
+fully built; the persistence layer currently runs on a seeded in-memory mock database that mirrors a
+REST API, so the app can be switched to a live Spring&nbsp;Boot backend by changing one environment
+variable.</p>
+
+<div class="grid">
+  <div class="card"><div class="k">Routes</div><div class="v">43</div><div class="d">Across 4 access shells</div></div>
+  <div class="card"><div class="k">Page components</div><div class="v">38</div><div class="d">+ 6 layouts</div></div>
+  <div class="card"><div class="k">Reusable components</div><div class="v">48</div><div class="d">Kit + charts + domain</div></div>
+  <div class="card"><div class="k">Service modules</div><div class="v">10</div><div class="d">Single API boundary</div></div>
+  <div class="card"><div class="k">Mock layer files</div><div class="v">17</div><div class="d">DB, handlers, seed</div></div>
+  <div class="card"><div class="k">Automated checks</div><div class="v">241</div><div class="d">Data + render probes</div></div>
+</div>
+
+<h2>1.1 Module completion status</h2>
+<table>
+  <tr><th style="width:26%">Module</th><th class="c" style="width:11%">Pages</th><th>Status</th></tr>
+  <tr><td>Public / marketing &amp; discovery</td><td class="c">7</td><td><span class="ok">Complete</span> &mdash; Home, job search, job details, company directory, company details, 404, 403</td></tr>
+  <tr><td>Authentication</td><td class="c">4</td><td><span class="ok">Complete</span> &mdash; login, register, forgot password, reset password</td></tr>
+  <tr><td>Job seeker</td><td class="c">9</td><td><span class="ok">Complete</span> &mdash; dashboard, profile, resume, applications, saved jobs, alerts, notifications, settings</td></tr>
+  <tr><td>Recruiter</td><td class="c">12</td><td><span class="ok">Complete</span> &mdash; dashboard, company profile, job CRUD, pipeline, candidates, analytics, settings</td></tr>
+  <tr><td>Administrator</td><td class="c">7</td><td><span class="ok">Complete</span> &mdash; dashboard, users, recruiters, companies, jobs, applications, reports</td></tr>
+</table>
+</div>
+
+<!-- ==================== 2. TECH STACK ==================== -->
+<div class="section page-break">
+<h1>2. Technology Stack</h1>
+
+<h2>2.1 Runtime &amp; core libraries</h2>
+<table>
+  <tr><th style="width:22%">Technology</th><th style="width:13%">Version</th><th style="width:24%">Used for</th><th>Notes</th></tr>
+  <tr><td><strong>React</strong></td><td>18.3.1</td><td>UI library</td><td>Function components, hooks, <code>lazy()</code> code-splitting, <code>Suspense</code></td></tr>
+  <tr><td><strong>React DOM</strong></td><td>18.3.1</td><td>DOM renderer</td><td>Also used by the automated render harness (<code>react-dom/server</code>)</td></tr>
+  <tr><td><strong>React Router DOM</strong></td><td>6.28.1</td><td>Client-side routing</td><td>Nested layout routes, <code>protected</code> / <code>role</code> guards, URL-param filters</td></tr>
+  <tr><td><strong>Axios</strong></td><td>1.7.9</td><td>HTTP client</td><td>Interceptors for auth token, 401 handling and base URL; drives <em>live</em> mode</td></tr>
+  <tr><td><strong>React Hook Form</strong></td><td>7.54.2</td><td>Form state</td><td>Login, register, profile, job form, company profile, settings</td></tr>
+  <tr><td><strong>Recharts</strong></td><td>3.10.1</td><td>Data visualisation</td><td>Line, bar, donut and horizontal-bar charts for recruiter &amp; admin analytics</td></tr>
+  <tr><td><strong>Lucide React</strong></td><td>0.469.0</td><td>Icon system</td><td>Tree-shaken icon set used across the UI</td></tr>
+</table>
+
+<h2>2.2 Build, styling &amp; quality tooling</h2>
+<table>
+  <tr><th style="width:22%">Technology</th><th style="width:13%">Version</th><th style="width:24%">Used for</th><th>Notes</th></tr>
+  <tr><td><strong>Vite</strong></td><td>6.0.7</td><td>Dev server &amp; bundler</td><td>Port 5173, hot module replacement, manual chunk splitting for React and charts</td></tr>
+  <tr><td><strong>@vitejs/plugin-react</strong></td><td>4.3.4</td><td>React transform</td><td>JSX / Fast Refresh support</td></tr>
+  <tr><td><strong>Tailwind CSS</strong></td><td>4.0.0</td><td>Utility-first styling</td><td>Integrated through <code>@tailwindcss/vite</code> (no separate PostCSS config)</td></tr>
+  <tr><td><strong>ESLint</strong></td><td>9.17.0</td><td>Static analysis</td><td>Flat config (<code>eslint.config.js</code>) with React, Hooks and Refresh rule sets</td></tr>
+  <tr><td><strong>esbuild</strong> <span class="mono">(transitive)</span></td><td>&mdash;</td><td>Test bundling</td><td>Compiles the smoke suite, alias <code>@ &rarr; src</code>, automatic JSX</td></tr>
+</table>
+
+<h2>2.3 Path alias &amp; environment</h2>
+<table>
+  <tr><th style="width:34%">Item</th><th>Value</th></tr>
+  <tr><td>Source alias</td><td><code>@ &rarr; ./src</code> (Vite <code>resolve.alias</code>, mirrored by esbuild <code>--alias:@=./src</code>)</td></tr>
+  <tr><td>API mode</td><td><code>VITE_API_MODE</code> = <code>mock</code> (local database) or <code>live</code> (REST)</td></tr>
+  <tr><td>API base URL</td><td><code>VITE_API_BASE_URL</code> = <code>http://localhost:8080/api</code> (Spring Boot)</td></tr>
+  <tr><td>Storage namespace</td><td>Every key is prefixed <code>jobkhoj:</code> so the app never collides with other data on the origin</td></tr>
+</table>
+
+<div class="note"><strong>Backend note:</strong> the frontend is written against a service layer, not against
+mock code directly. Switching <code>VITE_API_MODE=live</code> sends every call through Axios to the Spring Boot
+API without touching a single page component.</div>
+</div>
+
+<!-- ==================== 3. ARCHITECTURE ==================== -->
+<div class="section page-break">
+<h1>3. Architecture</h1>
+<p class="lead">The code follows a layered structure: pages never touch storage directly &mdash; they call
+services, the service layer chooses mock or live, and mock handlers own all business rules.</p>
+
+<pre>&mdash; Page / Component  (React, hooks, rendering)
+        &darr;  module import
+&mdash; Service layer    (authService, jobService, adminService &hellip;)
+        &darr;  picks mode at runtime
+   &rarr; mock handler  &rarr; in-memory DB  &darr;  (seed data)
+   &rarr; Axios client &rarr; http://localhost:8080/api</pre>
+
+<h2>3.1 Folder structure</h2>
+<pre>src/
+├── components/    48 files   common kit, charts, jobs, seeker, recruiter, layout
+├── pages/         40 files   admin(7) recruiter(12) seeker(9) auth(4) jobs(2)
+│                             companies(2) errors(2) Home
+├── services/      10 files   API boundary + delegation to mock or live
+├── mock/          17 files   db.js, handlers/ (11), seed/ (6)
+├── layouts/        6 files   Public, Seeker, Recruiter, Admin, Dashboard, Auth
+├── hooks/          9 files   useFetch, useAuth, useToast, usePagination &hellip;
+├── routes/         4 files   AppRoutes, paths, ProtectedRoute, RoleRoute
+├── context/        4 files   AuthProvider, ToastProvider + contexts
+└── utils/          4 files   constants, format, storage, cn</pre>
+
+<h2>3.2 Layers in detail</h2>
+<table>
+  <tr><th style="width:17%">Layer</th><th style="width:31%">Responsibility</th><th>Representative files</th></tr>
+  <tr><td><strong>Pages</strong></td><td>Route-level screens; fetch, render, handle user intent</td><td><code>pages/admin/Reports.jsx</code>, <code>pages/jobs/JobSearch.jsx</code></td></tr>
+  <tr><td><strong>Components</strong></td><td>Reusable UI: tables, modals, forms, charts, skeletons</td><td><code>DataTable</code>, <code>ConfirmDialog</code>, <code>Charts.jsx</code></td></tr>
+  <tr><td><strong>Services</strong></td><td>One import surface per domain; mock/live switch lives here</td><td><code>jobService.js</code>, <code>adminService.js</code>, <code>api.js</code></td></tr>
+  <tr><td><strong>Mock handlers</strong></td><td>Business rules: filtering, pagination, moderation, pipeline moves</td><td><code>handlers/jobs.js</code>, <code>handlers/admin.js</code></td></tr>
+  <tr><td><strong>Seed</strong></td><td>Deterministic demo dataset &mdash; companies, jobs, users, analytics</td><td><code>seed/index.js</code> + 5 domain seeds</td></tr>
+  <tr><td><strong>Constants</strong></td><td>Single source of truth for roles, statuses, tones, route paths</td><td><code>utils/constants.js</code>, <code>routes/paths.js</code></td></tr>
+</table>
+
+<h2>3.3 Access control</h2>
+<table>
+  <tr><th style="width:30%">Guard</th><th>Behaviour</th></tr>
+  <tr><td><code>&lt;ProtectedRoute&gt;</code></td><td>Any signed-in user; otherwise redirects to login</td></tr>
+  <tr><td><code>&lt;RoleRoute roles={[…]}&gt;</code></td><td>One specific role; otherwise redirects to that role's 403 / home</td></tr>
+  <tr><td>Home routing by role</td><td><code>JOB_SEEKER &rarr; /dashboard</code>, <code>RECRUITER &rarr; /recruiter/dashboard</code>, <code>ADMIN &rarr; /admin</code></td></tr>
+</table>
+</div>
+
+<!-- ==================== 4. FEATURE MODULES ==================== -->
+<div class="section page-break">
+<h1>4. Feature Modules</h1>
+
+<h2>4.1 Public &amp; discovery</h2>
+<table>
+  <tr><th style="width:26%">Route</th><th style="width:24%">Page</th><th>Features</th></tr>
+  <tr><td><code>/</code></td><td>Home</td><td>Hero search, featured jobs, skill shortcuts, top verified companies, employer CTA</td></tr>
+  <tr><td><code>/jobs</code></td><td>Job search</td><td>Full-text search, faceted filters, URL-synced params, sorting, pagination</td></tr>
+  <tr><td><code>/jobs/:id</code></td><td>Job details</td><td>Description, skills, similar jobs, save/apply actions, share, view tracking</td></tr>
+  <tr><td><code>/companies</code></td><td>Company directory</td><td>Verified-first listing, search &amp; verification filters, paginated</td></tr>
+  <tr><td><code>/companies/:slug</code></td><td>Company profile</td><td>About, benefits, key facts, open roles</td></tr>
+  <tr><td><code>/login</code> <code>/register</code> <code>/forgot-password</code> <code>/reset-password</code></td><td>Auth (4)</td><td>Role-aware sign-in and registration (seeker / recruiter), validation</td></tr>
+  <tr><td><code>/403</code> <code>*</code></td><td>Errors (2)</td><td>Forbidden and not-found screens</td></tr>
+</table>
+
+<h2>4.2 Job seeker</h2>
+<table>
+  <tr><th style="width:26%">Route</th><th style="width:24%">Page</th><th>Features</th></tr>
+  <tr><td><code>/dashboard</code></td><td>Dashboard</td><td>Application stats, recommended jobs, recent activity</td></tr>
+  <tr><td><code>/dashboard/profile</code></td><td>Profile</td><td>Personal details, skills, experience, education, profile completeness</td></tr>
+  <tr><td><code>/dashboard/resume</code></td><td>Resume</td><td>Resume upload / management</td></tr>
+  <tr><td><code>/dashboard/applications</code></td><td>My applications</td><td>Application list with status badges and filters</td></tr>
+  <tr><td><code>/dashboard/applications/:id</code></td><td>Application details</td><td>Status timeline, job summary, withdrawal</td></tr>
+  <tr><td><code>/dashboard/saved-jobs</code></td><td>Saved jobs</td><td>Saved / shortlisted job list</td></tr>
+  <tr><td><code>/dashboard/job-alerts</code></td><td>Job alerts</td><td>Create and manage keyword alerts</td></tr>
+  <tr><td><code>/dashboard/notifications</code></td><td>Notifications</td><td>Typed inbox with icons and read state</td></tr>
+  <tr><td><code>/dashboard/settings</code></td><td>Settings</td><td>Password change, notification preferences</td></tr>
+</table>
+
+<h2>4.3 Recruiter</h2>
+<table>
+  <tr><th style="width:26%">Route</th><th style="width:24%">Page</th><th>Features</th></tr>
+  <tr><td><code>/recruiter/dashboard</code></td><td>Dashboard</td><td>Company metrics, open roles, recent applications</td></tr>
+  <tr><td><code>/recruiter/company</code></td><td>Company profile</td><td>Edit company record, verification badge</td></tr>
+  <tr><td><code>/recruiter/jobs</code> <code>/jobs/create</code> <code>/jobs/:id/edit</code> <code>/jobs/:id</code></td><td>Job CRUD (4)</td><td>Create, edit, publish, close; shared <code>JobForm</code></td></tr>
+  <tr><td><code>/recruiter/jobs/:id/applicants</code></td><td>Applicants</td><td>Kanban pipeline, drag-and-drop stage moves, list view</td></tr>
+  <tr><td><code>/recruiter/applicants/:applicationId</code></td><td>Applicant details</td><td>CV summary, stage actions, rejection/offer confirmation</td></tr>
+  <tr><td><code>/recruiter/candidates</code></td><td>Candidates</td><td>Cross-job candidate search and filters</td></tr>
+  <tr><td><code>/recruiter/analytics</code></td><td>Analytics</td><td>Funnel, source and status charts</td></tr>
+  <tr><td><code>/recruiter/settings</code></td><td>Settings</td><td>Recruiter account and notification preferences</td></tr>
+</table>
+
+<h2>4.4 Administrator</h2>
+<table>
+  <tr><th style="width:26%">Route</th><th style="width:24%">Page</th><th>Features</th></tr>
+  <tr><td><code>/admin</code></td><td>Dashboard</td><td>Platform KPIs, moderation queues, shortcuts, charts</td></tr>
+  <tr><td><code>/admin/users</code></td><td>Users</td><td>Search, role/status filters, block, unblock, delete</td></tr>
+  <tr><td><code>/admin/recruiters</code></td><td>Recruiters</td><td>Role and status filtering, linked company names, moderation</td></tr>
+  <tr><td><code>/admin/companies</code></td><td>Companies</td><td>Verify / reject / suspend with confirmation</td></tr>
+  <tr><td><code>/admin/jobs</code></td><td>Jobs</td><td>Approve, reject, close; application counts</td></tr>
+  <tr><td><code>/admin/applications</code></td><td>Applications</td><td>Read-only cross-platform application monitoring</td></tr>
+  <tr><td><code>/admin/reports</code></td><td>Reports</td><td>Status splits, trends, CSV export, data reset</td></tr>
+</table>
+</div>
+
+<!-- ==================== 5. DATA LAYER ==================== -->
+<div class="section page-break">
+<h1>5. Data &amp; Mock Layer</h1>
+<p class="lead">A deterministic in-memory database behaves like a REST API, so the UI can be developed and
+tested before the backend exists.</p>
+
+<table>
+  <tr><th style="width:22%">Area</th><th style="width:30%">Files</th><th>What it does</th></tr>
+  <tr><td><strong>Database</strong></td><td><code>mock/db.js</code></td><td>In-memory tables with find / where / update / insert primitives</td></tr>
+  <tr><td><strong>Seed data</strong></td><td><code>seed/index.js</code> + <code>companies</code>, <code>jobs</code>, <code>users</code>, <code>applications</code>, <code>analytics</code></td><td>Deterministic demo dataset: employers, verified/pending status, jobs, seeker, recruiter, admin, applications, metrics</td></tr>
+  <tr><td><strong>Handlers</strong></td><td><code>handlers/</code> &mdash; auth, jobs, companies, applications, users, recruiter, admin, query, index, latency</td><td>Business rules: search &amp; facets, pagination, moderation transitions, pipeline stage moves, role checks, artificial latency</td></tr>
+</table>
+
+<h2>5.1 Domain rules implemented in the mock layer</h2>
+<ul>
+  <li>Moderation lifecycle &mdash; companies <em>Pending &rarr; Verified / Rejected / Suspended</em>, jobs <em>Pending Approval &rarr; Active / Rejected</em>, users <em>Active &rarr; Blocked</em>.</li>
+  <li>Recruiter Kanban pipeline &mdash; <em>Applied &rarr; Screening &rarr; Shortlisted &rarr; Interview &rarr; Selected &rarr; Hired</em>, with a terminal <em>Rejected</em> column counted separately.</li>
+  <li>Status change updates both the recruiter's stage and the seeker's visible status, and appends a timeline entry.</li>
+  <li>Blocked accounts are excluded from dashboards and queues.</li>
+  <li>Company ownership is resolved from the session, not from the request body, so a recruiter cannot edit another company.</li>
+</ul>
+
+<h2>5.2 Status vocabulary (single source of truth)</h2>
+<table>
+  <tr><th style="width:26%">Constant group</th><th>Values</th></tr>
+  <tr><td><code>ROLES</code></td><td><code>JOB_SEEKER</code>, <code>RECRUITER</code>, <code>ADMIN</code></td></tr>
+  <tr><td><code>APPLICATION_STATUS</code></td><td>Applied, Under Review, Shortlisted, Interview, Rejected, Hired</td></tr>
+  <tr><td><code>JOB_STATUS</code></td><td>Draft, Pending Approval, Active, Closed, Rejected, Expired</td></tr>
+  <tr><td><code>COMPANY_STATUS</code></td><td>Pending, Verified, Rejected, Suspended</td></tr>
+  <tr><td><code>USER_STATUS</code></td><td>Active, Blocked</td></tr>
+  <tr><td><code>PIPELINE_STAGE</code></td><td>APPLIED, SCREENING, SHORTLISTED, INTERVIEW, SELECTED, HIRED, REJECTED</td></tr>
+  <tr><td><code>NOTIFICATION_TYPE</code></td><td>SHORTLISTED, INTERVIEW, MATCH, STATUS</td></tr>
+</table>
+
+<div class="good"><strong>Enforced by tooling:</strong> an ESLint rule bans these values when written as raw
+string literals, so status values can no longer drift away from the constants. This closed a real class of bug
+where <code>'VERIFIED'</code> (uppercase) was written while the constant is <code>'Verified'</code> &mdash; which
+silently returned zero rows from every filter.</div>
+</div>
+
+<!-- ==================== 6. QUALITY ==================== -->
+<div class="section page-break">
+<h1>6. Quality Assurance &amp; Scripts</h1>
+
+<h2>6.1 npm scripts</h2>
+<table>
+  <tr><th style="width:16%">Command</th><th style="width:30%">Purpose</th><th>Detail</th></tr>
+  <tr><td><code>npm run dev</code></td><td>Development server</td><td>Vite on port 5173, opens automatically</td></tr>
+  <tr><td><code>npm run build</code></td><td>Production build</td><td>Outputs <code>dist/</code> with split vendor chunks</td></tr>
+  <tr><td><code>npm run preview</code></td><td>Preview the build</td><td>Serves the production bundle locally</td></tr>
+  <tr><td><code>npm run lint</code></td><td>Static analysis</td><td>ESLint flat config across all JS/JSX</td></tr>
+  <tr><td><code>npm run smoke</code></td><td>Automated test suite</td><td>241 assertions &mdash; data contracts + component render probes</td></tr>
+</table>
+
+<h2>6.2 What the smoke suite covers</h2>
+<table>
+  <tr><th style="width:32%">Suite</th><th>Examples of what is asserted</th></tr>
+  <tr><td>Search &amp; filtering</td><td>Keyword match, location/skill filters, facets, sorting, pagination contracts</td></tr>
+  <tr><td>Authentication</td><td>Session login, token decode, role-based home, unauthorised access</td></tr>
+  <tr><td>Application pipeline</td><td>Stage moves, status synchronisation, timeline entries, rejection recovery</td></tr>
+  <tr><td>Admin moderation</td><td>Company verify/reject, job approval, user block/unblock, queue counts</td></tr>
+  <tr><td>Reports &amp; charts</td><td>Status splits sum to 100%, chart series shapes, CSV export</td></tr>
+  <tr><td>Service layer</td><td>Mock/live delegation, session ownership, not-found errors</td></tr>
+  <tr><td><strong>Render probes</strong></td><td><strong>All 44 route components mounted</strong> &mdash; catches invalid element types, hook-order errors and unguarded render expressions</td></tr>
+</table>
+
+<h2>6.3 Verification results</h2>
+<table>
+  <tr><th style="width:34%">Check</th><th class="c" style="width:18%">Result</th><th>Detail</th></tr>
+  <tr><td>Automated smoke suite</td><td class="c"><span class="ok">241 / 241</span></td><td>0 failures</td></tr>
+  <tr><td>ESLint</td><td class="c"><span class="ok">Clean</span></td><td>0 errors, 0 warnings</td></tr>
+  <tr><td>Production build</td><td class="c"><span class="ok">Passing</span></td><td>Vite build completes without errors</td></tr>
+  <tr><td>Route inventory</td><td class="c"><span class="ok">43 / 43</span></td><td>Every route resolves to an existing component with a default export</td></tr>
+  <tr><td>Placeholder scan</td><td class="c"><span class="ok">None</span></td><td>No stubbed or unfinished screens remain</td></tr>
+</table>
+
+<h2>6.4 Known limitation</h2>
+<div class="note">There is no browser-level (end-to-end) test harness in this project. The automated suite
+verifies data behaviour and that every screen renders, but interactive flows such as clicking through an
+application, submitting forms or drag-and-drop have not been exercised by an automated browser test.</div>
+</div>
+
+<!-- ==================== 7. SUMMARY ==================== -->
+<div class="section page-break">
+<h1>7. Delivery Summary</h1>
+
+<table>
+  <tr><th style="width:32%">Area</th><th>Status</th></tr>
+  <tr><td>UI framework &amp; tooling</td><td>React 18 + Vite 6 + Tailwind CSS 4 + ESLint 9 (flat config)</td></tr>
+  <tr><td>Routing &amp; access control</td><td>React Router 6 with nested layouts, protected routes and role guards</td></tr>
+  <tr><td>Forms &amp; validation</td><td>React Hook Form across auth, profile, job and company forms</td></tr>
+  <tr><td>Charts</td><td>Recharts &mdash; line, bar, donut and horizontal bars</td></tr>
+  <tr><td>Backend integration</td><td>Service layer with mock / live switch; Axios ready for Spring Boot</td></tr>
+  <tr><td>Feature completeness</td><td>All 5 modules (public, auth, seeker, recruiter, admin) complete</td></tr>
+  <tr><td>Test coverage</td><td>241 automated checks: data contracts + all 44 component renders</td></tr>
+  <tr><td>Code quality</td><td>Lint clean; status literals enforced against shared constants</td></tr>
+  <tr><td>Build</td><td>Production build successful and code-split</td></tr>
+</table>
+
+<h2>How to run</h2>
+<pre>npm install        # install dependencies
+npm run dev        # start development server (http://localhost:5173)
+npm run lint       # static analysis
+npm run smoke      # run all 241 automated checks
+npm run build      # production build to dist/</pre>
+
+<h2>Demo accounts</h2>
+<table>
+  <tr><th style="width:26%">Role</th><th style="width:34%">Email</th><th>Password</th></tr>
+  <tr><td>Job seeker</td><td><code>seeker@jobkhoj.in</code></td><td>Any value (mock accepts any)</td></tr>
+  <tr><td>Recruiter</td><td><code>recruiter@jobkhoj.in</code></td><td>Any value (mock accepts any)</td></tr>
+  <tr><td>Administrator</td><td><code>admin@jobkhoj.in</code></td><td>Any value (mock accepts any)</td></tr>
+</table>
+
+<div class="foot">JobKhoj &mdash; Technical Documentation &amp; Technology Report &middot; Generated 06 October 2026
+&middot; Frontend: React 18 / Vite 6 / Tailwind CSS 4</div>
+</div>
+
+</body>
+</html>
