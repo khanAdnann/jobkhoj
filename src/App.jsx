@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import AuthProvider from '@/context/AuthProvider'
 import ThemeProvider from '@/context/ThemeProvider'
 import ToastProvider from '@/context/ToastProvider'
@@ -27,6 +28,7 @@ export default function App() {
           </Suspense>
         </AuthProvider>
       </ToastProvider>
+      <Analytics />
     </ThemeProvider>
   )
 }
