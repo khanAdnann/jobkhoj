@@ -29,6 +29,7 @@ const JobSearch = lazy(() => import('@/pages/jobs/JobSearch'))
 const JobDetails = lazy(() => import('@/pages/jobs/JobDetails'))
 const CompanyDirectory = lazy(() => import('@/pages/companies/CompanyDirectory'))
 const CompanyDetails = lazy(() => import('@/pages/companies/CompanyDetails'))
+const PublicInfoPage = lazy(() => import('@/pages/public/InfoPages'))
 
 const SeekerDashboard = lazy(() => import('@/pages/seeker/Dashboard'))
 const SeekerProfile = lazy(() => import('@/pages/seeker/Profile'))
@@ -111,6 +112,11 @@ export default function AppRoutes() {
         <Route path="jobs/:id" element={<JobDetails />} />
         <Route path="companies" element={<CompanyDirectory />} />
         <Route path="companies/:slug" element={<CompanyDetails />} />
+        <Route path="about" element={<PublicInfoPage page="about" />} />
+        <Route path="contact" element={<PublicInfoPage page="contact" />} />
+        <Route path="privacy-policy" element={<PublicInfoPage page="privacy" />} />
+        <Route path="terms" element={<PublicInfoPage page="terms" />} />
+        <Route path="help" element={<PublicInfoPage page="help" />} />
 
         {/* --------------------------- career tools ------------------------- */}
         <Route path="tools">

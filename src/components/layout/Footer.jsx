@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
-import { Linkedin, Twitter, Github, Mail, MapPin } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import Logo from './Logo'
+import { PATHS } from '@/routes/paths'
+import { CONTACT_EMAIL } from '@/utils/constants'
 
 const COLUMNS = [
   {
@@ -39,19 +41,13 @@ const COLUMNS = [
   {
     title: 'Company',
     links: [
-      { label: 'About Us', to: '/' },
-      { label: 'Contact', to: '/' },
-      { label: 'Privacy Policy', to: '/' },
-      { label: 'Terms of Service', to: '/' },
-      { label: 'Help Center', to: '/' },
+      { label: 'About Us', to: PATHS.about },
+      { label: 'Contact', to: PATHS.contact },
+      { label: 'Privacy Policy', to: PATHS.privacyPolicy },
+      { label: 'Terms of Service', to: PATHS.terms },
+      { label: 'Help Center', to: PATHS.help },
     ],
   },
-]
-
-const SOCIALS = [
-  { label: 'LinkedIn', icon: Linkedin, href: 'https://www.linkedin.com' },
-  { label: 'Twitter', icon: Twitter, href: 'https://x.com' },
-  { label: 'GitHub', icon: Github, href: 'https://github.com' },
 ]
 
 export default function Footer() {
@@ -66,37 +62,17 @@ export default function Footer() {
             <Logo />
 
             <p className="mt-4 text-sm leading-relaxed text-ink-500">
-              JobKhoj connects ambitious professionals with thousands of opportunities from
-              companies hiring across India.
+              JobKhoj helps people explore job listings and organize their career search.
             </p>
 
             <ul className="mt-5 space-y-2 text-sm text-ink-500">
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 shrink-0 text-ink-400" aria-hidden="true" />
-                <a href="mailto:hello@jobkhoj.in" className="transition-colors hover:text-brand-600">
-                  hello@jobkhoj.in
+                <a href={`mailto:${CONTACT_EMAIL}`} className="transition-colors hover:text-brand-600">
+                  {CONTACT_EMAIL}
                 </a>
-              </li>
-              <li className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 shrink-0 text-ink-400" aria-hidden="true" />
-                <span>Mumbai, Maharashtra, India</span>
               </li>
             </ul>
-
-            <div className="mt-5 flex items-center gap-2">
-              {SOCIALS.map(({ label, icon: Icon, href }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  aria-label={label}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-ink-200 text-ink-500 transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-600"
-                >
-                  <Icon className="h-4 w-4" aria-hidden="true" />
-                </a>
-              ))}
-            </div>
           </div>
 
           {/* Link columns */}

@@ -21,7 +21,7 @@ import { useFetch } from '@/hooks/useFetch'
 import * as jobService from '@/services/jobService'
 import * as companyService from '@/services/companyService'
 import { PATHS } from '@/routes/paths'
-import { LOCATIONS, SKILLS } from '@/utils/constants'
+import { COMPANY_STATUS, LOCATIONS, SKILLS } from '@/utils/constants'
 import { formatNumber } from '@/utils/format'
 
 const FEATURED_LIMIT = 6
@@ -44,7 +44,7 @@ export default function Home() {
           <div className="mx-auto max-w-3xl text-center">
             <Badge tone="brand" className="mb-5">
               <TrendingUp className="h-3 w-3" aria-hidden="true" />
-              {formatNumber(1620)}+ open roles across verified companies
+              Explore job listings and career tools
             </Badge>
 
             <h1 className="text-3xl font-bold tracking-tight text-balance text-ink-900 sm:text-5xl">
@@ -52,24 +52,24 @@ export default function Home() {
             </h1>
 
             <p className="mx-auto mt-4 max-w-2xl text-base text-pretty text-ink-600 sm:text-lg">
-              Search verified roles from India's leading employers, apply in three steps, and
-              track every application from one dashboard.
+              Browse job listings, explore company information, and use practical tools as you
+              prepare for your next career move.
             </p>
 
             <SearchForm className="mt-8" />
 
             <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink-500">
               <li className="inline-flex items-center gap-1.5">
-                <BadgeCheck className="h-4 w-4 text-success-600" aria-hidden="true" />
-                Verified employers only
+                <Briefcase className="h-4 w-4 text-brand-600" aria-hidden="true" />
+                Explore job listings
               </li>
               <li className="inline-flex items-center gap-1.5">
                 <Briefcase className="h-4 w-4 text-brand-600" aria-hidden="true" />
-                No recruiter fees
+                Organize your applications
               </li>
               <li className="inline-flex items-center gap-1.5">
                 <Users className="h-4 w-4 text-info-600" aria-hidden="true" />
-                Free for job seekers
+                Career tools for candidates
               </li>
             </ul>
           </div>
@@ -81,7 +81,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
         <SectionHeading
           title="Featured openings"
-          subtitle="Hand-picked roles from companies hiring right now."
+          subtitle="A selection of listings from the current catalog."
           action={
             <Button as={Link} to={PATHS.jobs} variant="ghost">
               Browse all jobs
@@ -132,8 +132,8 @@ export default function Home() {
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
         <SectionHeading
-          title="Top companies"
-          subtitle="Employers with the most open roles on JobKhoj."
+          title="Companies"
+          subtitle="Explore company information in the current catalog."
           action={
             <Button as={Link} to={PATHS.companies} variant="ghost">
               All companies
@@ -161,10 +161,12 @@ export default function Home() {
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-1.5 font-semibold text-ink-900 group-hover:text-brand-700">
                     <span className="truncate">{company.name}</span>
-                    <BadgeCheck
-                      className="h-4 w-4 shrink-0 text-success-600"
-                      aria-label="Verified"
-                    />
+                    {company.verification === COMPANY_STATUS.VERIFIED && (
+                      <BadgeCheck
+                        className="h-4 w-4 shrink-0 text-success-600"
+                        aria-label="Verified company"
+                      />
+                    )}
                   </p>
 
                   <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-ink-500">
@@ -191,16 +193,16 @@ export default function Home() {
             <div className="max-w-xl">
               <h2 className="text-2xl font-bold text-white sm:text-3xl">Hiring for your team?</h2>
               <p className="mt-3 text-base text-pretty text-ink-300">
-                Post jobs free, reach verified candidates, and manage your whole pipeline from
-                one recruiter dashboard.
+                Create a company profile, manage job listings, and review applications from
+                the recruiter dashboard.
               </p>
 
               <ul className="mt-6 grid gap-2.5 sm:grid-cols-2">
                 {[
-                  'Post and manage unlimited jobs',
-                  'Candidate pipeline board',
-                  'Recruiter analytics and reports',
-                  'Company profile page',
+                  'Create and manage job listings',
+                  'Review applicants by pipeline stage',
+                  'View recruiter reporting',
+                  'Manage a company profile',
                 ].map((feature) => (
                   <li key={feature} className="flex items-center gap-2 text-sm text-ink-200">
                     <BadgeCheck className="h-4 w-4 shrink-0 text-success-500" aria-hidden="true" />

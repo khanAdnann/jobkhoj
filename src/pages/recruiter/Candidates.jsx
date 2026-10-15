@@ -335,7 +335,7 @@ function CandidateCard({ candidate, onOpen }) {
 
 function CandidateDrawer({ candidateId, onClose }) {
   const query = useFetch(
-    () => (candidateId ? applicationService.getCandidateById(candidateId) : Promise.resolve(null)),
+    () => (candidateId ? applicationService.getCandidate(candidateId) : Promise.resolve(null)),
     [candidateId],
   )
 

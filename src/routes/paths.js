@@ -12,6 +12,11 @@ export const PATHS = {
   jobDetails: (id) => `/jobs/${id}`,
   companies: '/companies',
   companyDetails: (idOrSlug) => `/companies/${idOrSlug}`,
+  about: '/about',
+  contact: '/contact',
+  privacyPolicy: '/privacy-policy',
+  terms: '/terms',
+  help: '/help',
 
   /* ---------------------------- career tools ---------------------------- */
   tools: {
