@@ -23,6 +23,7 @@ import * as companyService from '@/services/companyService'
 import { PATHS } from '@/routes/paths'
 import { COMPANY_STATUS, LOCATIONS, SKILLS } from '@/utils/constants'
 import { formatNumber } from '@/utils/format'
+import PageMetadata from '@/components/seo/PageMetadata'
 
 const FEATURED_LIMIT = 6
 const COMPANY_LIMIT = 6
@@ -37,6 +38,10 @@ export default function Home() {
 
   return (
     <div>
+      <PageMetadata
+        title="Find Jobs in India | JobKhoj"
+        description="Find job opportunities across India, explore companies, and use practical career tools to prepare for your next move."
+      />
       {/* -------------------------------- hero -------------------------------- */}
 
       <section className="border-b border-ink-200 bg-gradient-to-b from-brand-50/70 to-white">

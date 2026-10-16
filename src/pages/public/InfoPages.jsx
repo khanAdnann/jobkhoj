@@ -1,8 +1,8 @@
-import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Mail } from 'lucide-react'
 import { CONTACT_EMAIL } from '@/utils/constants'
 import { PATHS } from '@/routes/paths'
+import PageMetadata from '@/components/seo/PageMetadata'
 
 const PAGE_META = {
   about: {
@@ -32,30 +32,12 @@ const PAGE_META = {
   },
 }
 
-function usePageMetadata(title, description) {
-  useEffect(() => {
-    const previousTitle = document.title
-    const descriptionTag = document.querySelector('meta[name="description"]')
-    const previousDescription = descriptionTag?.getAttribute('content')
-
-    document.title = `${title} | JobKhoj`
-    descriptionTag?.setAttribute('content', description)
-
-    return () => {
-      document.title = previousTitle
-      if (previousDescription !== null && descriptionTag) {
-        descriptionTag.setAttribute('content', previousDescription)
-      }
-    }
-  }, [title, description])
-}
-
 function PageShell({ page, children }) {
   const { title, description, intro } = PAGE_META[page]
-  usePageMetadata(title, description)
 
   return (
     <article className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+      <PageMetadata title={`${title} | JobKhoj`} description={description} />
       <header className="border-b border-ink-200 pb-8">
         <p className="text-sm font-semibold text-brand-700">JobKhoj</p>
         <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">

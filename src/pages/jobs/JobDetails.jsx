@@ -35,6 +35,7 @@ import { useToast } from '@/hooks/useToast'
 import { PATHS } from '@/routes/paths'
 import { formatDate, formatSalaryRange, timeAgo } from '@/utils/format'
 import { COMPANY_STATUS, JOB_STATUS } from '@/utils/constants'
+import PageMetadata from '@/components/seo/PageMetadata'
 
 /**
  * Public job detail page (PRD section 8).
@@ -62,16 +63,6 @@ export default function JobDetails() {
   useEffect(() => {
     if (id) trackJobView(id)
   }, [id])
-
-  /* Per-job document title, restored on unmount (PRD section 35). */
-  useEffect(() => {
-    if (!job?.title) return undefined
-
-    document.title = `${job.title} at ${job.company?.name ?? 'JobKhoj'} | JobKhoj`
-    return () => {
-      document.title = 'JobKhoj — Find Your Dream Job'
-    }
-  }, [job?.title, job?.company?.name])
 
   const handleShare = useCallback(async () => {
     const url = window.location.href
@@ -148,6 +139,10 @@ export default function JobDetails() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <PageMetadata
+        title={`${job.title} at ${job.company?.name ?? 'JobKhoj'} | JobKhoj`}
+        description={`${job.title} at ${job.company?.name ?? 'JobKhoj'} in ${job.location}. View role details, requirements, and how to apply.`}
+      />
       <Breadcrumb
         className="mb-4"
         items={[

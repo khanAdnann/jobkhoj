@@ -11,6 +11,7 @@ import { getSavedJobs } from '@/services/userService'
 import { useAuth } from '@/hooks/useAuth'
 import { useFetch } from '@/hooks/useFetch'
 import { useJobFilters } from '@/hooks/useJobFilters'
+import PageMetadata from '@/components/seo/PageMetadata'
 
 const PAGE_SIZE = 12
 
@@ -73,6 +74,10 @@ export default function JobSearch() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <PageMetadata
+        title="Browse Jobs in India | JobKhoj"
+        description="Search current job openings by role, skill, company, location, and work mode on JobKhoj."
+      />
       <header className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
           Find your next job
