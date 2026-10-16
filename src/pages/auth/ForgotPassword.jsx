@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { CheckCircle2, Mail } from 'lucide-react'
 import AuthLayout from '@/layouts/AuthLayout'
 import * as authService from '@/services/authService'
+import { supabaseEnabled } from '@/services/supabaseClient'
 import { PATHS } from '@/routes/paths'
 import { Button, Input } from '@/components/common'
 
@@ -54,7 +55,7 @@ export default function ForgotPassword() {
           <p className="mt-1 font-semibold break-all text-ink-900">{getValues('email')}</p>
         </div>
 
-        <div className="mt-6 rounded-lg border border-brand-200 bg-brand-50/60 p-4">
+        {!supabaseEnabled && <div className="mt-6 rounded-lg border border-brand-200 bg-brand-50/60 p-4">
           <p className="text-xs font-semibold tracking-wide text-brand-800 uppercase">
             Demo mode
           </p>
@@ -78,7 +79,7 @@ export default function ForgotPassword() {
               token: {resetToken.slice(0, 42)}…
             </p>
           )}
-        </div>
+        </div>}
       </AuthLayout>
     )
   }

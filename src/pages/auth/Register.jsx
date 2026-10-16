@@ -82,7 +82,7 @@ export default function Register() {
         return
       }
 
-      const user = await createAccount({
+      const result = await createAccount({
         role: values.role,
         name: values.name,
         email: values.email,
@@ -92,7 +92,18 @@ export default function Register() {
         companySize: values.role === ROLES.RECRUITER ? values.companySize : undefined,
       })
 
-      toast.success('Account created — welcome to JobKhoj!')
+      if (result?.needsEmailConfirmation) {
+        toast.info('Check your email to confirm your account, then sign in.')
+        navigate(PATHS.login, { replace: true })
+        return
+      }
+
+      const user = result?.user ?? result
+      toast.success(
+        user.role === ROLES.RECRUITER
+          ? 'Account created. Recruiter approval is required before posting jobs.'
+          : 'Account created — welcome to JobKhoj!',
+      )
       navigate(HOME_BY_ROLE[user.role] ?? PATHS.home, { replace: true })
     } catch (error) {
       setError('root', { message: error.message })

@@ -149,12 +149,12 @@ export default function JobDetails() {
           { label: 'Home', to: PATHS.home },
           { label: 'Jobs', to: PATHS.jobs },
           ...(job.company
-            ? [
-                {
-                  label: job.company.name,
-                  to: PATHS.companyDetails(job.company.slug ?? job.company.id),
-                },
-              ]
+            ? [{
+                label: job.company.name,
+                ...(job.company.slug || job.company.id
+                  ? { to: PATHS.companyDetails(job.company.slug ?? job.company.id) }
+                  : {}),
+              }]
             : []),
           { label: job.title },
         ]}

@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { AlertTriangle, Eye, EyeOff, Lock } from 'lucide-react'
 import AuthLayout from '@/layouts/AuthLayout'
 import * as authService from '@/services/authService'
+import { requireSupabase, supabaseEnabled } from '@/services/supabaseClient'
 import { PATHS } from '@/routes/paths'
 import { Button, EmptyState, Input } from '@/components/common'
 
@@ -19,8 +20,8 @@ export default function ResetPassword() {
   const navigate = useNavigate()
 
   const token = searchParams.get('token')
+  const [supabaseRecoveryReady, setSupabaseRecoveryReady] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-
   const {
     register,
     handleSubmit,
@@ -34,6 +35,23 @@ export default function ResetPassword() {
 
   const password = watch('password')
 
+  useEffect(() => {
+    if (!supabaseEnabled) return undefined
+
+    let cancelled = false
+    requireSupabase().auth.getSession().then(({ data, error }) => {
+      if (error) {
+        setError('root', { message: error.message })
+      } else if (!cancelled) {
+        setSupabaseRecoveryReady(Boolean(data.session))
+      }
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [setError])
+
   async function onSubmit(values) {
     try {
       await authService.resetPassword({ token, password: values.password })
@@ -43,7 +61,7 @@ export default function ResetPassword() {
     }
   }
 
-  if (!token) {
+  if (!token && !(supabaseEnabled && supabaseRecoveryReady)) {
     return (
       <AuthLayout
         title="Reset link missing"

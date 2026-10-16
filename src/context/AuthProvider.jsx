@@ -4,6 +4,7 @@ import { storage } from '@/utils/storage'
 import { clearToken, getToken, onUnauthorized } from '@/services/api'
 import * as authService from '@/services/authService'
 import { HOME_BY_ROLE, TOKEN_KEY, USER_KEY } from '@/utils/constants'
+import { supabaseEnabled } from '@/services/supabaseClient'
 
 /**
  * Authentication provider.
@@ -13,12 +14,39 @@ import { HOME_BY_ROLE, TOKEN_KEY, USER_KEY } from '@/utils/constants'
  * the background. A failed validation clears the session.
  */
 export default function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => storage.get(USER_KEY, null))
-  const [initialising, setInitialising] = useState(() => Boolean(getToken()))
+  const [user, setUser] = useState(() =>
+    supabaseEnabled ? null : storage.get(USER_KEY, null),
+  )
+  const [initialising, setInitialising] = useState(() =>
+    supabaseEnabled ? true : Boolean(getToken()),
+  )
 
   /* --------------------------- session restore --------------------------- */
 
   useEffect(() => {
+    if (supabaseEnabled) {
+      let cancelled = false
+
+      authService
+        .me()
+        .then((fresh) => {
+          if (!cancelled) setUser(fresh)
+        })
+        .catch((error) => {
+          if (!cancelled) {
+            console.error('[auth] Could not restore the Supabase profile.', error)
+            setUser(null)
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setInitialising(false)
+        })
+
+      return () => {
+        cancelled = true
+      }
+    }
+
     const token = getToken()
     const cachedUser = storage.get(USER_KEY, null)
 
@@ -57,12 +85,15 @@ export default function AuthProvider({ children }) {
   /* ---------------------- react to backend 401s -------------------------- */
 
   useEffect(
-    () =>
-      onUnauthorized(() => {
+    () => {
+      if (supabaseEnabled) return undefined
+
+      return onUnauthorized(() => {
         clearToken()
         storage.remove(USER_KEY)
         setUser(null)
-      }),
+      })
+    },
     [],
   )
 
@@ -76,18 +107,20 @@ export default function AuthProvider({ children }) {
 
   const register = useCallback(async (payload) => {
     const result = await authService.register(payload)
-    setUser(result.user)
-    return result.user
+    if (result?.user) setUser(result.user)
+    return result
   }, [])
 
   const logout = useCallback(async () => {
     try {
       await authService.logout()
     } finally {
-      // Always clear locally, even if the network call failed.
-      clearToken()
-      storage.remove(USER_KEY)
-      storage.remove(TOKEN_KEY)
+      if (!supabaseEnabled) {
+        // Always clear the legacy mock/backend session, even if logout failed.
+        clearToken()
+        storage.remove(USER_KEY)
+        storage.remove(TOKEN_KEY)
+      }
       setUser(null)
     }
   }, [])
@@ -95,14 +128,14 @@ export default function AuthProvider({ children }) {
   const refresh = useCallback(async () => {
     const fresh = await authService.me()
     setUser(fresh)
-    storage.set(USER_KEY, fresh)
+    if (!supabaseEnabled) storage.set(USER_KEY, fresh)
     return fresh
   }, [])
 
   const updateUser = useCallback((patch) => {
     setUser((prev) => {
       const next = { ...prev, ...patch }
-      storage.set(USER_KEY, next)
+      if (!supabaseEnabled) storage.set(USER_KEY, next)
       return next
     })
   }, [])

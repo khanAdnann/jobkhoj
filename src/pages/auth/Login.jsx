@@ -5,7 +5,7 @@ import { Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react'
 import AuthLayout from '@/layouts/AuthLayout'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
-import { DEMO_ACCOUNTS } from '@/services/authService'
+import { DEMO_ACCOUNTS, supabaseEnabled } from '@/services/authService'
 import { PATHS } from '@/routes/paths'
 import { HOME_BY_ROLE } from '@/utils/constants'
 import { Button, Input, Checkbox } from '@/components/common'
@@ -145,55 +145,67 @@ export default function Login() {
           Sign in
         </Button>
 
-        <div className="relative py-1">
-          <div className="absolute inset-0 flex items-center" aria-hidden="true">
-            <div className="w-full border-t border-ink-200" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-white px-3 text-xs font-medium text-ink-400">or continue with</span>
-          </div>
-        </div>
-
-        {/* Google sign-in is intentionally a placeholder (PRD section 2). */}
-        <button
-          type="button"
-          onClick={() =>
-            toast.info('Google sign-in will be available once the backend OAuth flow is connected.')
-          }
-          className="flex h-11 w-full items-center justify-center gap-2.5 rounded-lg border border-ink-300 bg-white text-sm font-medium text-ink-700 transition-colors hover:bg-ink-50"
-        >
-          <GoogleMark />
-          <span>Continue with Google</span>
-          <span className="rounded bg-ink-100 px-1.5 py-0.5 text-[10px] font-semibold text-ink-500">
-            Soon
-          </span>
-        </button>
-
-        <div className="rounded-lg border border-brand-200 bg-brand-50/60 p-4">
-          <p className="text-xs font-semibold tracking-wide text-brand-800 uppercase">
-            Demo accounts
-          </p>
-          <p className="mt-1 text-xs text-brand-700">
-            The mock backend accepts any password for these seeded accounts.
-          </p>
-
-          <div className="mt-3 grid gap-2">
-            {DEMO_ACCOUNTS.map((account) => (
-              <button
-                key={account.email}
-                type="button"
-                onClick={() => fillDemoAccount(account.email)}
-                className="flex items-center justify-between gap-2 rounded-md border border-brand-200 bg-white px-3 py-2 text-left transition-colors hover:border-brand-400"
-              >
-                <span className="min-w-0">
-                  <span className="block text-xs font-semibold text-ink-900">{account.label}</span>
-                  <span className="block truncate text-xs text-ink-500">{account.email}</span>
+        {!supabaseEnabled && (
+          <>
+            <div className="relative py-1">
+              <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                <div className="w-full border-t border-ink-200" />
+              </div>
+              <div className="relative flex justify-center">
+                <span className="bg-white px-3 text-xs font-medium text-ink-400">
+                  or continue with
                 </span>
-                <span className="shrink-0 text-xs font-medium text-brand-600">Use</span>
-              </button>
-            ))}
+              </div>
+            </div>
+
+            {/* Google sign-in is intentionally a placeholder (PRD section 2). */}
+            <button
+              type="button"
+              onClick={() =>
+                toast.info(
+                  'Google sign-in will be available once the backend OAuth flow is connected.',
+                )
+              }
+              className="flex h-11 w-full items-center justify-center gap-2.5 rounded-lg border border-ink-300 bg-white text-sm font-medium text-ink-700 transition-colors hover:bg-ink-50"
+            >
+              <GoogleMark />
+              <span>Continue with Google</span>
+              <span className="rounded bg-ink-100 px-1.5 py-0.5 text-[10px] font-semibold text-ink-500">
+                Soon
+              </span>
+            </button>
+          </>
+        )}
+
+        {!supabaseEnabled && (
+          <div className="rounded-lg border border-brand-200 bg-brand-50/60 p-4">
+            <p className="text-xs font-semibold tracking-wide text-brand-800 uppercase">
+              Demo accounts
+            </p>
+            <p className="mt-1 text-xs text-brand-700">
+              The mock backend accepts any password for these seeded accounts.
+            </p>
+
+            <div className="mt-3 grid gap-2">
+              {DEMO_ACCOUNTS.map((account) => (
+                <button
+                  key={account.email}
+                  type="button"
+                  onClick={() => fillDemoAccount(account.email)}
+                  className="flex items-center justify-between gap-2 rounded-md border border-brand-200 bg-white px-3 py-2 text-left transition-colors hover:border-brand-400"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-xs font-semibold text-ink-900">
+                      {account.label}
+                    </span>
+                    <span className="block truncate text-xs text-ink-500">{account.email}</span>
+                  </span>
+                  <span className="shrink-0 text-xs font-medium text-brand-600">Use</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </form>
     </AuthLayout>
   )

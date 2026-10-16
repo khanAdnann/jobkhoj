@@ -13,6 +13,7 @@
     "smoke": "esbuild scripts/smoke.js --bundle --platform=node --format=esm --jsx=automatic --alias:@=./src --define:import.meta.env.VITE_API_MODE='\"mock\"' --define:import.meta.env.VITE_API_BASE_URL='\"http://localhost:8080/api\"' --external:axios --external:react --external:react/* --external:react-dom --external:react-dom/* --external:react-router-dom --external:lucide-react --external:react-hook-form --external:recharts --outfile=node_modules/.cache/smoke.mjs --log-level=warning && node node_modules/.cache/smoke.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "@vercel/analytics": "^2.0.1",
     "axios": "^1.7.9",
     "jszip": "^3.10.2",

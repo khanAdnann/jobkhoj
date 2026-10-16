@@ -100,7 +100,7 @@ export default function JobForm({ mode = 'create' }) {
       responsibilities: job.responsibilities ?? [],
       requirements: job.requirements ?? [],
       benefits: job.benefits ?? [],
-      deadline: job.deadline ?? '',
+      deadline: job.deadline?.slice(0, 10) ?? '',
     })
   }, [existing.data, reset])
 
@@ -134,6 +134,7 @@ export default function JobForm({ mode = 'create' }) {
       salaryMax: values.salaryMax === '' ? null : Number(values.salaryMax),
       experienceMin: Number(values.experienceMin),
       experienceMax: Number(values.experienceMax),
+      experienceLabel: `${Number(values.experienceMin)}-${Number(values.experienceMax)} Years`,
       openings: Number(values.openings),
       deadline: values.deadline || null,
       status,
@@ -141,9 +142,12 @@ export default function JobForm({ mode = 'create' }) {
 
     try {
       if (isEdit) {
-        // Status is owned by admin approval / the close action, so an edit must
-        // not silently re-publish a closed job.
-        delete payload.status
+        // Only an explicit draft/publish action may change status. Preserve
+        // moderated or closed statuses when an existing job is edited.
+        const originalStatus = existing.data?.status
+        if (originalStatus !== JOB_STATUS.DRAFT && status !== JOB_STATUS.DRAFT) {
+          payload.status = originalStatus
+        }
         const updated = await jobService.updateJob(id, payload)
         toast.success('Job updated.')
         navigate(PATHS.recruiter.jobDetails(updated.id ?? id))

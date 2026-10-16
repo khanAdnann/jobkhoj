@@ -69,14 +69,16 @@ export default function JobCard({ job, saved = false, onSavedChange, className }
               </h3>
 
               <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-500">
-                {company?.name && (
+                {company?.name && (company.slug || company.id) ? (
                   <Link
                     to={PATHS.companyDetails(company.slug ?? company.id)}
                     className="relative z-10 font-medium text-ink-700 hover:text-brand-600 hover:underline"
                   >
                     {company.name}
                   </Link>
-                )}
+                ) : company?.name ? (
+                  <span className="font-medium text-ink-700">{company.name}</span>
+                ) : null}
 
                 {company?.verification === COMPANY_STATUS.VERIFIED && (
                   <BadgeCheck
