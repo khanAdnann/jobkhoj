@@ -11,6 +11,7 @@ begin
   end if;
 
   if to_regprocedure('public.set_updated_at()') is not null
+    or to_regprocedure('public.set_job_search_document()') is not null
     or to_regprocedure('public.bind_job_owner_company()') is not null
     or to_regprocedure('public.create_profile_for_auth_user()') is not null then
     raise exception
@@ -85,17 +86,7 @@ create table public.jobs (
   applicant_count integer not null default 0 check (applicant_count >= 0),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  search_document tsvector generated always as (
-    to_tsvector(
-      'simple',
-      coalesce(title, '') || ' ' ||
-      coalesce(company_name, '') || ' ' ||
-      coalesce(department, '') || ' ' ||
-      coalesce(location, '') || ' ' ||
-      coalesce(experience_label, '') || ' ' ||
-      coalesce(array_to_string(skills, ' '), '')
-    )
-  ) stored,
+  search_document tsvector not null default ''::tsvector,
   check (salary_min is null or salary_max is null or salary_max >= salary_min),
   check (
     status <> 'Active'
@@ -135,6 +126,31 @@ create trigger profiles_set_updated_at
 create trigger jobs_set_updated_at
   before update on public.jobs
   for each row execute function public.set_updated_at();
+
+create function public.set_job_search_document()
+returns trigger
+language plpgsql
+set search_path = pg_catalog
+as $$
+begin
+  new.search_document := pg_catalog.to_tsvector(
+    'pg_catalog.simple'::pg_catalog.regconfig,
+    coalesce(new.title, '') || ' ' ||
+    coalesce(new.company_name, '') || ' ' ||
+    coalesce(new.department, '') || ' ' ||
+    coalesce(new.location, '') || ' ' ||
+    coalesce(new.experience_label, '') || ' ' ||
+    coalesce(pg_catalog.array_to_string(new.skills, ' '), '')
+  );
+  return new;
+end;
+$$;
+
+revoke all on function public.set_job_search_document() from public, anon, authenticated;
+
+create trigger jobs_search_document
+  before insert or update on public.jobs
+  for each row execute function public.set_job_search_document();
 
 create function public.bind_job_owner_company()
 returns trigger

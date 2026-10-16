@@ -14,6 +14,10 @@ use; never place a Supabase service-role key in a `VITE_*` variable.
    It does not drop or replace existing objects. It creates profiles for new
    Auth signups after installation; it does not backfill existing Supabase
    Auth users or import mock/localStorage users or jobs.
+   The job search vector is populated by a trigger (not a generated column),
+   avoiding PostgreSQL's immutable-expression restriction on generated
+   columns. If an earlier run reported an error before `COMMIT`, check whether
+   the tables exist before retrying; the transaction should have rolled back.
 2. Set the Supabase project's URL and **publishable** key under
    **Project Settings → API Keys**. In local `.env`, map them to:
 
