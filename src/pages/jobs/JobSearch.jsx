@@ -22,6 +22,13 @@ const BANNER_AD_OPTIONS = {
   width: 468,
   params: {},
 }
+const MOBILE_BANNER_AD_OPTIONS = {
+  key: 'aea4711497036483082c71a44545381e',
+  format: 'iframe',
+  height: 50,
+  width: 320,
+  params: {},
+}
 
 function JobsBannerAd() {
   const containerRef = useRef(null)
@@ -44,6 +51,31 @@ function JobsBannerAd() {
       className="my-6 hidden justify-center min-[500px]:flex"
     >
       <div ref={containerRef} className="h-[60px] w-[468px] max-w-full" />
+    </aside>
+  )
+}
+
+function JobsMobileBannerAd() {
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return undefined
+
+    return mountAdUnit(
+      container,
+      MOBILE_BANNER_AD_OPTIONS,
+      'https://bicea.org/22/aea4711497036483082c71a44545381e',
+      '320×50 jobs banner',
+    )
+  }, [])
+
+  return (
+    <aside
+      aria-label="Advertisement"
+      className="my-4 flex justify-center overflow-hidden"
+    >
+      <div ref={containerRef} className="h-[50px] w-[320px] max-w-full" />
     </aside>
   )
 }
@@ -131,6 +163,7 @@ export default function JobSearch() {
       />
 
       <JobsBannerAd />
+      <JobsMobileBannerAd />
 
       <ActiveFilterChips
         className="mt-4"
