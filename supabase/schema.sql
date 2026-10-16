@@ -17,23 +17,25 @@ create table if not exists public.jobs (
   owner_id uuid not null references public.profiles (id) on delete cascade,
   company_id text,
   company_name text not null,
-  title text not null check (length(title) between 1 and 120),
-  department text not null default '',
-  location text not null,
-  work_mode text not null default '',
-  employment_type text not null default '',
-  experience_min integer not null default 0 check (experience_min >= 0),
-  experience_max integer not null default 0 check (experience_max >= experience_min),
+  title text not null
+    check (length(btrim(title)) between 1 and 80),
+  department text not null default '' check (length(btrim(department)) > 0),
+  location text not null check (length(btrim(location)) > 0),
+  work_mode text not null default '' check (length(btrim(work_mode)) > 0),
+  employment_type text not null default '' check (length(btrim(employment_type)) > 0),
+  experience_min integer not null default 0 check (experience_min between 0 and 30),
+  experience_max integer not null default 0
+    check (experience_max between experience_min and 30),
   experience_label text not null default 'Not specified',
   salary_min numeric(10, 2) check (salary_min is null or salary_min >= 0),
   salary_max numeric(10, 2) check (salary_max is null or salary_max >= 0),
-  skills text[] not null default '{}',
-  preferred_skills text[] not null default '{}',
+  skills text[] not null default '{}' check (cardinality(skills) <= 15),
+  preferred_skills text[] not null default '{}' check (cardinality(preferred_skills) <= 10),
   education text not null default '',
-  description text not null default '',
-  responsibilities text[] not null default '{}',
-  requirements text[] not null default '{}',
-  benefits text[] not null default '{}',
+  description text not null default '' check (length(description) <= 3000),
+  responsibilities text[] not null default '{}' check (cardinality(responsibilities) <= 10),
+  requirements text[] not null default '{}' check (cardinality(requirements) <= 10),
+  benefits text[] not null default '{}' check (cardinality(benefits) <= 10),
   openings integer not null default 1 check (openings between 1 and 99),
   featured boolean not null default false,
   status text not null default 'Draft'
@@ -55,7 +57,18 @@ create table if not exists public.jobs (
       coalesce(array_to_string(skills, ' '), '')
     )
   ) stored,
-  check (salary_min is null or salary_max is null or salary_max >= salary_min)
+  check (salary_min is null or salary_max is null or salary_max >= salary_min),
+  check (
+    status <> 'Active'
+    or (
+      length(btrim(title)) > 0
+      and length(btrim(department)) > 0
+      and length(btrim(location)) > 0
+      and length(btrim(work_mode)) > 0
+      and length(btrim(employment_type)) > 0
+      and length(btrim(description)) > 0
+    )
+  )
 );
 
 create index if not exists jobs_public_status_deadline_posted_idx
@@ -151,9 +164,24 @@ create trigger on_auth_user_created_jobkhoj
   after insert on auth.users
   for each row execute function public.create_profile_for_auth_user();
 
+insert into public.profiles (id, name, phone, role, company_name, company_size)
+select
+  id,
+  coalesce(raw_user_meta_data ->> 'name', ''),
+  coalesce(raw_user_meta_data ->> 'phone', ''),
+  case
+    when raw_user_meta_data ->> 'role' = 'RECRUITER' then 'RECRUITER'
+    else 'JOB_SEEKER'
+  end,
+  nullif(raw_user_meta_data ->> 'company_name', ''),
+  nullif(raw_user_meta_data ->> 'company_size', '')
+from auth.users
+on conflict (id) do nothing;
+
 alter table public.profiles enable row level security;
 alter table public.jobs enable row level security;
 
+grant usage on schema public to anon, authenticated;
 revoke all on public.profiles from anon, authenticated;
 grant select on public.profiles to authenticated;
 grant update (name, phone, company_name, company_size) on public.profiles to authenticated;

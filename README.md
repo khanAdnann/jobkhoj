@@ -2,7 +2,7 @@
 
 ## Supabase setup
 
-Supabase is enabled when both `VITE_SUPABASE_URL` and
+Supabase job persistence is enabled when both `VITE_SUPABASE_URL` and
 `VITE_SUPABASE_PUBLISHABLE_KEY` are set. The browser uses Supabase Auth for the
 existing login and registration screens and RLS-protected queries for public
 jobs and recruiter job management. The publishable key is intended for browser
@@ -40,4 +40,7 @@ use; never place a Supabase service-role key in a `VITE_*` variable.
 
 Public job reads are limited by RLS to active, non-expired listings. Recruiters
 can create, edit, and delete only their own jobs after approval. Drafts and
-other non-public statuses are visible only to their owner.
+other non-public statuses are visible only to their owner. Until both Supabase
+variables are configured, the app retains its existing development/mock
+behavior; that mode is not database persistence. Once configured, job requests
+use Supabase and surface errors rather than silently falling back to mock data.
