@@ -71,6 +71,7 @@ function section(name) {
 
 const { db } = await import('../src/mock/db.js')
 const { buildSeed } = await import('../src/mock/seed/index.js')
+const { storage } = await import('../src/utils/storage.js')
 const jobs = await import('../src/mock/handlers/jobs.js')
 const companies = await import('../src/mock/handlers/companies.js')
 const applications = await import('../src/mock/handlers/applications.js')
@@ -110,8 +111,16 @@ const seed = buildSeed()
 const seedSeekers = seed.users.filter((user) => user.role === ROLES.JOB_SEEKER).length
 const seedRecruiters = seed.users.filter((user) => user.role === ROLES.RECRUITER).length
 
-check('10 companies seeded', seed.companies.length === 10, `got ${seed.companies.length}`)
-check('26 jobs seeded', seed.jobs.length === 26, `got ${seed.jobs.length}`)
+check('11 companies seeded', seed.companies.length === 11, `got ${seed.companies.length}`)
+check('27 jobs seeded', seed.jobs.length === 27, `got ${seed.jobs.length}`)
+const nitiJob = seed.jobs.find((job) => job.id === 'job-niti-pune-developers-2026')
+check(
+  'Niti Pune listing includes supplied eligibility and contact details',
+  nitiJob?.status === JOB_STATUS.ACTIVE &&
+    nitiJob.companyId === 'cmp-niti-technologies-india-software' &&
+    nitiJob.description.includes('hr@nititechnologiesindia.com') &&
+    nitiJob.requirements.some((requirement) => requirement.includes('2023, 2024, 2025, and 2026')),
+)
 check(
   '12 seekers + 10 recruiters + 1 admin seeded',
   seed.users.length === 23,
@@ -149,7 +158,21 @@ check(
   new Set(seed.jobs.map((j) => j.status)).size >= 4,
   [...new Set(seed.jobs.map((j) => j.status))].join(','),
 )
-check('db seeded to the same counts', db.count('jobs') === 26)
+check('db seeded to the same counts', db.count('jobs') === 27)
+
+section('Existing localStorage seed migration')
+storage.set('companies', seed.companies.filter((company) => company.id !== 'cmp-niti-technologies-india-software'))
+storage.set('jobs', seed.jobs.filter((job) => job.id !== 'job-niti-pune-developers-2026'))
+storage.remove('migration.niti-pune-job-2026')
+const migratedCompanies = db.all('companies')
+const migratedJobs = db.all('jobs')
+check('existing company data is preserved', migratedCompanies.some((company) => company.id === 'cmp-tcs'))
+check(
+  'Niti company and job are added to existing localStorage data',
+  migratedCompanies.some((company) => company.id === 'cmp-niti-technologies-india-software') &&
+    migratedJobs.some((job) => job.id === 'job-niti-pune-developers-2026'),
+)
+db.reset()
 
 /* -------------------------------- queries -------------------------------- */
 
@@ -693,7 +716,7 @@ check('mock db persists to localStorage', globalThis.localStorage.length > 0)
 const before = db.count('jobs')
 await users.resetMockData()
 const statsAfterReset = db.stats()
-check('reset restores job count', statsAfterReset.jobs === 26, `got ${statsAfterReset.jobs} (was ${before})`)
+check('reset restores job count', statsAfterReset.jobs === 27, `got ${statsAfterReset.jobs} (was ${before})`)
 check(
   'reset restores the original application set',
   statsAfterReset.applications === seed.applications.length,
@@ -1223,7 +1246,6 @@ check(
 const { createElement: h } = await import('react')
 const { renderToStaticMarkup } = await import('react-dom/server')
 const { MemoryRouter, Route, Routes } = await import('react-router-dom')
-const { storage } = await import('../src/utils/storage.js')
 const { default: AuthProvider } = await import('../src/context/AuthProvider.jsx')
 const { default: ToastProvider } = await import('../src/context/ToastProvider.jsx')
 

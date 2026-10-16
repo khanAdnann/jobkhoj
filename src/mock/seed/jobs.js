@@ -1,5 +1,5 @@
 /**
- * Job seed data — 26 roles spread across all 10 companies.
+ * Job seed data — sample roles plus a supplied Pune hiring announcement.
  *
  * Records are intentionally compact: only the fields that vary per job live
  * here. `src/mock/seed/index.js` expands each row into a full job object and
