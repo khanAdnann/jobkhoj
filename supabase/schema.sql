@@ -1,4 +1,43 @@
-create table if not exists public.profiles (
+-- One-time install for a project without these JobKhoj objects. This guard
+-- prevents this script from replacing existing tables, functions, or triggers.
+begin;
+
+do $preflight$
+begin
+  if to_regclass('public.profiles') is not null
+    or to_regclass('public.jobs') is not null then
+    raise exception
+      'JobKhoj profiles/jobs already exist. Stop and prepare a migration instead of running this installer.';
+  end if;
+
+  if to_regprocedure('public.set_updated_at()') is not null
+    or to_regprocedure('public.bind_job_owner_company()') is not null
+    or to_regprocedure('public.create_profile_for_auth_user()') is not null then
+    raise exception
+      'A JobKhoj trigger function already exists. Inspect it before installing this schema.';
+  end if;
+
+  if to_regclass('public.jobs_public_status_deadline_posted_idx') is not null
+    or to_regclass('public.jobs_owner_posted_idx') is not null
+    or to_regclass('public.jobs_search_document_idx') is not null then
+    raise exception
+      'A JobKhoj index name already exists. Inspect it before installing this schema.';
+  end if;
+
+  if exists (
+    select 1
+    from pg_catalog.pg_trigger
+    where tgrelid = 'auth.users'::regclass
+      and tgname = 'on_auth_user_created_jobkhoj'
+      and not tgisinternal
+  ) then
+    raise exception
+      'The JobKhoj auth trigger already exists. Inspect it before installing this schema.';
+  end if;
+end;
+$preflight$;
+
+create table public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   name text not null default '',
   phone text not null default '',
@@ -12,7 +51,7 @@ create table if not exists public.profiles (
   updated_at timestamptz not null default now()
 );
 
-create table if not exists public.jobs (
+create table public.jobs (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references public.profiles (id) on delete cascade,
   company_id text,
@@ -71,14 +110,14 @@ create table if not exists public.jobs (
   )
 );
 
-create index if not exists jobs_public_status_deadline_posted_idx
+create index jobs_public_status_deadline_posted_idx
   on public.jobs (status, deadline, posted_at desc);
-create index if not exists jobs_owner_posted_idx
+create index jobs_owner_posted_idx
   on public.jobs (owner_id, posted_at desc);
-create index if not exists jobs_search_document_idx
+create index jobs_search_document_idx
   on public.jobs using gin (search_document);
 
-create or replace function public.set_updated_at()
+create function public.set_updated_at()
 returns trigger
 language plpgsql
 set search_path = pg_catalog
@@ -89,17 +128,15 @@ begin
 end;
 $$;
 
-drop trigger if exists profiles_set_updated_at on public.profiles;
 create trigger profiles_set_updated_at
   before update on public.profiles
   for each row execute function public.set_updated_at();
 
-drop trigger if exists jobs_set_updated_at on public.jobs;
 create trigger jobs_set_updated_at
   before update on public.jobs
   for each row execute function public.set_updated_at();
 
-create or replace function public.bind_job_owner_company()
+create function public.bind_job_owner_company()
 returns trigger
 language plpgsql
 security definer
@@ -128,12 +165,11 @@ $$;
 
 revoke all on function public.bind_job_owner_company() from public, anon, authenticated;
 
-drop trigger if exists jobs_bind_owner_company on public.jobs;
 create trigger jobs_bind_owner_company
   before insert or update on public.jobs
   for each row execute function public.bind_job_owner_company();
 
-create or replace function public.create_profile_for_auth_user()
+create function public.create_profile_for_auth_user()
 returns trigger
 language plpgsql
 security definer
@@ -159,39 +195,21 @@ $$;
 
 revoke all on function public.create_profile_for_auth_user() from public, anon, authenticated;
 
-drop trigger if exists on_auth_user_created_jobkhoj on auth.users;
 create trigger on_auth_user_created_jobkhoj
   after insert on auth.users
   for each row execute function public.create_profile_for_auth_user();
 
-insert into public.profiles (id, name, phone, role, company_name, company_size)
-select
-  id,
-  coalesce(raw_user_meta_data ->> 'name', ''),
-  coalesce(raw_user_meta_data ->> 'phone', ''),
-  case
-    when raw_user_meta_data ->> 'role' = 'RECRUITER' then 'RECRUITER'
-    else 'JOB_SEEKER'
-  end,
-  nullif(raw_user_meta_data ->> 'company_name', ''),
-  nullif(raw_user_meta_data ->> 'company_size', '')
-from auth.users
-on conflict (id) do nothing;
-
 alter table public.profiles enable row level security;
 alter table public.jobs enable row level security;
 
-grant usage on schema public to anon, authenticated;
 revoke all on public.profiles from anon, authenticated;
 grant select on public.profiles to authenticated;
 grant update (name, phone, company_name, company_size) on public.profiles to authenticated;
 
-drop policy if exists "Users can read their own profile" on public.profiles;
 create policy "Users can read their own profile"
   on public.profiles for select to authenticated
   using (id = (select auth.uid()));
 
-drop policy if exists "Users can update editable profile fields" on public.profiles;
 create policy "Users can update editable profile fields"
   on public.profiles for update to authenticated
   using (id = (select auth.uid()))
@@ -278,17 +296,14 @@ grant update (
 ) on public.jobs to authenticated;
 grant delete on public.jobs to authenticated;
 
-drop policy if exists "Public can read published jobs" on public.jobs;
 create policy "Public can read published jobs"
   on public.jobs for select to anon, authenticated
   using (status = 'Active' and (deadline is null or deadline >= current_date));
 
-drop policy if exists "Owners can read their jobs" on public.jobs;
 create policy "Owners can read their jobs"
   on public.jobs for select to authenticated
   using (owner_id = (select auth.uid()));
 
-drop policy if exists "Approved recruiters can create their own jobs" on public.jobs;
 create policy "Approved recruiters can create their own jobs"
   on public.jobs for insert to authenticated
   with check (
@@ -301,7 +316,6 @@ create policy "Approved recruiters can create their own jobs"
     )
   );
 
-drop policy if exists "Approved recruiters can update their own jobs" on public.jobs;
 create policy "Approved recruiters can update their own jobs"
   on public.jobs for update to authenticated
   using (
@@ -323,7 +337,6 @@ create policy "Approved recruiters can update their own jobs"
     )
   );
 
-drop policy if exists "Approved recruiters can delete their own jobs" on public.jobs;
 create policy "Approved recruiters can delete their own jobs"
   on public.jobs for delete to authenticated
   using (
@@ -335,3 +348,6 @@ create policy "Approved recruiters can delete their own jobs"
         and p.recruiter_approved
     )
   );
+
+commit;
+ 
