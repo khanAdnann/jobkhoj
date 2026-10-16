@@ -1,6 +1,6 @@
 import { api, request } from './api'
 import * as mock from '@/mock/handlers/recruiter'
-import { supabaseEnabled } from './supabaseClient'
+import { requireSupabase } from './supabaseClient'
 import { getRecruiterJobs as getSupabaseRecruiterJobs } from './supabaseJobs'
 
 /**
@@ -20,7 +20,7 @@ export const getRecruiterDashboard = () =>
 export const getRecruiterAnalytics = () =>
   request(() => api.get('/recruiter/analytics'), () => mock.getRecruiterAnalytics())
 
-export const getRecruiterJobs = (params = {}) =>
-  supabaseEnabled
-    ? getSupabaseRecruiterJobs(params)
-    : request(() => api.get('/recruiter/jobs', { params }), () => mock.listRecruiterJobs(params))
+export const getRecruiterJobs = (params = {}) => {
+  requireSupabase()
+  return getSupabaseRecruiterJobs(params)
+}

@@ -103,14 +103,23 @@ function toDatabase(payload) {
   )
 }
 
-function throwIfError(error) {
+function throwIfError(error, operation = 'job request') {
   if (error) {
-    if (error.code === '42501' || error.code === 'PGRST301') {
-      throw new Error(
-        'Supabase denied this job action. Sign in with Supabase Auth and ensure this recruiter has been approved.',
-      )
+    const diagnostics = {
+      code: error.code ?? null,
+      message: error.message ?? 'Unknown Supabase error',
+      details: error.details ?? null,
+      hint: error.hint ?? null,
     }
-    throw new Error(error.message || 'Supabase could not complete the job request.')
+    console.error(`[supabase jobs] ${operation} failed`, diagnostics)
+    const detail = [
+      diagnostics.message,
+      diagnostics.details && `Details: ${diagnostics.details}`,
+      diagnostics.hint && `Hint: ${diagnostics.hint}`,
+    ].filter(Boolean).join(' ')
+    throw new Error(
+      `Supabase ${operation} failed${diagnostics.code ? ` (${diagnostics.code})` : ''}: ${detail}`,
+    )
   }
 }
 
@@ -127,13 +136,32 @@ async function currentProfile() {
     .single()
   throwIfError(error)
 
-  if (profile.role !== 'RECRUITER' || !profile.recruiter_approved) {
+  if (profile.role !== 'RECRUITER') {
+    throw new Error('This Supabase account is not registered with the RECRUITER role.')
+  }
+  if (!profile.recruiter_approved) {
     throw new Error(
-      'Your recruiter account is awaiting approval. Contact the JobKhoj administrator before posting jobs.',
+      'Your Supabase recruiter profile is not approved yet. Ask the JobKhoj administrator to set recruiter_approved to true.',
+    )
+  }
+  if (!profile.company_name?.trim()) {
+    throw new Error(
+      'Your Supabase recruiter profile has no company name. Update public.profiles.company_name before posting jobs.',
     )
   }
 
   return { client, user: authData.user, profile }
+}
+
+async function readOwnedJob(client, id, userId, operation) {
+  const { data, error } = await client
+    .from('jobs')
+    .select(JOB_COLUMNS)
+    .eq('id', id)
+    .eq('owner_id', userId)
+    .single()
+  throwIfError(error, operation)
+  return fromDatabase(data)
 }
 
 export async function getJob(id) {
@@ -340,14 +368,15 @@ export async function getRecruiterJobs({ status } = {}) {
 }
 
 export async function createJob(payload) {
-  const { client } = await currentProfile()
+  const { client, user } = await currentProfile()
   const row = {
+    owner_id: user.id,
     ...toDatabase(payload),
     status: payload.status ?? JOB_STATUS.ACTIVE,
   }
-  const { data, error } = await client.from('jobs').insert(row).select(JOB_COLUMNS).single()
-  throwIfError(error)
-  return fromDatabase(data)
+  const { data, error } = await client.from('jobs').insert(row).select('id').single()
+  throwIfError(error, 'insert job')
+  return readOwnedJob(client, data.id, user.id, 'read back inserted job')
 }
 
 export async function updateJob(id, payload) {
@@ -357,11 +386,11 @@ export async function updateJob(id, payload) {
     .update(toDatabase(payload))
     .eq('id', id)
     .eq('owner_id', user.id)
-    .select(JOB_COLUMNS)
+    .select('id')
     .maybeSingle()
-  throwIfError(error)
+  throwIfError(error, 'update job')
   if (!data) throw new Error('Job not found or you do not have permission to edit it.')
-  return fromDatabase(data)
+  return readOwnedJob(client, data.id, user.id, 'read back updated job')
 }
 
 export async function deleteJob(id) {

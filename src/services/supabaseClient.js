@@ -25,7 +25,7 @@ export const supabase = supabaseEnabled
 export function requireSupabase() {
   if (!supabase) {
     throw new Error(
-      'Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY, then restart the app.',
+      'JobKhoj cannot access its Supabase job database. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in this environment, then restart the Vite server or rebuild the app. Mock jobs are not used as a persistence fallback.',
     )
   }
 

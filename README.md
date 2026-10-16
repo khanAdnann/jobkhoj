@@ -30,7 +30,8 @@ use; never place a Supabase service-role key in a `VITE_*` variable.
    `VITE_*` variables in **Vercel → Project Settings → Environment Variables**
    for each environment you use, then redeploy. Never use a secret/service-role
    key in either variable. Keep existing localStorage records; this integration
-   does not delete or import them.
+   does not delete or import them. Restart the local Vite server after changing
+   `.env`; Vite embeds these values at startup/build time.
 3. In **Authentication → URL Configuration**, allow the production site URL
    and the redirect URLs used by the app, including `/login` and
    `/reset-password`; also allow the local Vite origin during development.
@@ -73,7 +74,7 @@ use; never place a Supabase service-role key in a `VITE_*` variable.
 
 Public job reads are limited by RLS to active, non-expired listings. Recruiters
 can create, edit, and delete only their own jobs after approval. Drafts and
-other non-public statuses are visible only to their owner. Until both Supabase
-variables are configured, the app retains its existing development/mock
-behavior; that mode is not database persistence. Once configured, job requests
-use Supabase and surface errors rather than silently falling back to mock data.
+other non-public statuses are visible only to their owner. Job browse and
+recruiter job-management requests require Supabase and fail visibly if it is
+not configured; they never fall back to mock jobs. Other not-yet-migrated
+application areas may still use the existing demo/mock behavior.

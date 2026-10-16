@@ -699,15 +699,14 @@ check(
   statsAfterReset.applications === seed.applications.length,
 )
 
-/* ---------------------------- service delegation --------------------------- */
+/* ----------------------- service delegation and Supabase ------------------- */
 
-section('Service layer (mock delegation)')
+section('Service layer (mock delegation and fail-closed jobs)')
 
 /**
- * Every service export must resolve to a real handler function. These calls go
- * through `request()`, so a service pointing at the wrong handler module — or
- * recursing into itself instead of the handler — fails here rather than in the
- * browser.
+ * Non-job services still delegate to mock handlers in this smoke environment.
+ * Job reads and writes require Supabase so mock records cannot masquerade as
+ * persisted database jobs when Supabase is not configured.
  *
  * Company-scoped services run under a recruiter session; admin services run
  * under an admin session, because that is how the app actually calls them.
@@ -718,8 +717,13 @@ await auth.login({ email: 'recruiter@jobkhoj.in', password: 'x' })
 const serviceRecruiterDash = await recruiterService.getRecruiterDashboard()
 check('recruiterService.getRecruiterDashboard resolves a handler', serviceRecruiterDash.company?.id)
 
-const serviceRecruiterJobs = await recruiterService.getRecruiterJobs({})
-check('recruiterService.getRecruiterJobs resolves a handler', Array.isArray(serviceRecruiterJobs))
+let recruiterJobsFailedClosed = false
+try {
+  await recruiterService.getRecruiterJobs({})
+} catch (error) {
+  recruiterJobsFailedClosed = error.message.includes('Supabase')
+}
+check('recruiterService.getRecruiterJobs refuses mock fallback', recruiterJobsFailedClosed)
 
 const serviceAnalytics = await recruiterService.getRecruiterAnalytics()
 check('recruiterService.getRecruiterAnalytics resolves a handler', serviceAnalytics.funnel.length > 0)
@@ -837,8 +841,13 @@ check(
   profileViaService.headline === 'Updated by smoke test',
 )
 
-const serviceJobList = await jobService.listJobs({ pageSize: 5 })
-check('jobService.listJobs resolves a handler', serviceJobList.items.length > 0)
+let publicJobListFailedClosed = false
+try {
+  await jobService.listJobs({ pageSize: 5 })
+} catch (error) {
+  publicJobListFailedClosed = error.message.includes('Supabase')
+}
+check('jobService.listJobs refuses mock fallback', publicJobListFailedClosed)
 
 const servicePipeline = await applicationService.getPipeline('job-1003')
 check('applicationService.getPipeline resolves a handler', Boolean(servicePipeline.columns))
@@ -1053,7 +1062,7 @@ section('Public pages (home, companies)')
 
 /** The landing page and company screens render straight from these payloads. */
 
-const homeFeaturedJobs = await jobService.getFeaturedJobs(6)
+const homeFeaturedJobs = await jobs.getFeaturedJobs(6)
 check(
   'home page: featured jobs are returned',
   homeFeaturedJobs.length > 0 && homeFeaturedJobs.length <= 6,
@@ -1150,7 +1159,7 @@ try {
 }
 check('company page: an unknown company raises a not-found error', unknownCompanyFailed)
 
-const companyJobs = await jobService.getJobsByCompany('cmp-tcs', { pageSize: 6 })
+const companyJobs = await jobs.getJobsByCompany('cmp-tcs', { pageSize: 6 })
 check(
   'company page: open roles are returned for the company',
   companyJobs.items.length > 0 && companyJobs.items.every((job) => job.companyId === 'cmp-tcs'),
