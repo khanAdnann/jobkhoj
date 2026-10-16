@@ -2,15 +2,12 @@
 
 ## Supabase setup
 
-Supabase job persistence is enabled when both `VITE_SUPABASE_URL` and
-`VITE_SUPABASE_PUBLISHABLE_KEY` are set. The browser uses Supabase Auth for the
-existing login and registration screens and RLS-protected queries for public
-jobs and recruiter job management. The publishable key is intended for browser
-use; never place a Supabase service-role key in a `VITE_*` variable.
-
-`VITE_API_MODE` is separate: `mock` keeps REST-backed features that have not
-been migrated on the local demo data layer. It does not disable Supabase Auth
-or Supabase job reads/writes. Job operations do not fall back to localStorage.
+`VITE_API_MODE=mock` selects localStorage-backed demo authentication and job
+storage. This mode ignores Supabase credentials and saves jobs only in the
+current browser. `VITE_API_MODE=live` enables Supabase Auth and jobs when both
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are set; other services
+may use the configured REST backend. Never put a Supabase service-role key in
+a `VITE_*` variable.
 
 1. Run the entire [`supabase/schema.sql`](./supabase/schema.sql) once in the
    Supabase SQL Editor. It is a guarded first-install script: it aborts if its
@@ -32,8 +29,9 @@ or Supabase job reads/writes. Job operations do not fall back to localStorage.
 
    The existing `NEXT_PUBLIC_*` names are not read by Vite. Add these same
    `VITE_*` variables in **Vercel → Project Settings → Environment Variables**
-   for each environment you use, then redeploy. Never use a secret/service-role
-   key in either variable. Keep existing localStorage records; this integration
+   for each environment you use, then redeploy. Set `VITE_API_MODE=live` to
+   enable Supabase; `mock` deliberately keeps jobs in browser localStorage.
+   Never use a secret/service-role key in either variable. Keep existing localStorage records; this integration
    does not delete or import them. Restart the local Vite server after changing
    `.env`; Vite embeds these values at startup/build time. Rebuild and redeploy
    after changing Vercel environment variables.
@@ -77,9 +75,7 @@ or Supabase job reads/writes. Job operations do not fall back to localStorage.
    on conflict (id) do nothing;
    ```
 
-Public job reads are limited by RLS to active, non-expired listings. Recruiters
-can create, edit, and delete only their own jobs after approval. Drafts and
-other non-public statuses are visible only to their owner. Job browse and
-recruiter job-management requests require Supabase and fail visibly if it is
-not configured; they never fall back to mock jobs. Other not-yet-migrated
-application areas may still use the existing demo/mock behavior.
+In `live` mode, public job reads are limited by RLS to active, non-expired
+listings. Recruiters can manage only their own jobs after approval. Drafts and
+other non-public statuses are visible only to their owner. In `mock` mode,
+jobs are saved in the browser and are not shared with Supabase or other users.

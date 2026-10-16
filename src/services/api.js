@@ -9,15 +9,16 @@ import { TOKEN_KEY, USER_KEY } from '@/utils/constants'
  * reference a URL, and `VITE_API_BASE_URL` from .env is the single place a
  * backend address is configured.
  *
- * `VITE_API_MODE` controls services that use this REST/mock request layer.
- * It does not control Supabase Auth or job persistence: those use the
- * Supabase client directly when both VITE_SUPABASE_* values are configured.
+ * `VITE_API_MODE=mock` selects browser-local mock auth and localStorage-backed
+ * job persistence, even if Supabase credentials are present. `live` enables
+ * Supabase when both VITE_SUPABASE_* values are configured and uses the REST
+ * backend for services that have not migrated to Supabase.
  *
  * Modes
  * -----
- * VITE_API_MODE=mock  -> REST-backed services read from src/mock.
- * VITE_API_MODE=live  -> REST-backed services call the configured backend.
- *                        On network failure they may fall back to src/mock.
+ * VITE_API_MODE=mock  -> services use localStorage-backed mock handlers.
+ * VITE_API_MODE=live  -> Supabase auth/jobs plus REST for other services.
+ *                        REST calls may fall back to src/mock on network failure.
  */
 
 export const API_BASE_URL =

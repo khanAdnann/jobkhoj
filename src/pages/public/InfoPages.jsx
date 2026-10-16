@@ -236,11 +236,11 @@ function PrivacyPage() {
       </Section>
       <Section title="8. Third-party services">
         <p>
-          The page source loads Google Fonts and includes Google's AdSense loader. The project
-          includes the Vercel Analytics React component to measure site usage. These providers
-          may process technical or usage information under their own terms and privacy policies.
-          The hosting provider may separately process technical data. Review the relevant
-          providers' privacy information.
+          The application loads Google Fonts, includes Google's AdSense loader, and displays a
+          third-party sidebar ad unit on public pages. The project includes the Vercel Analytics
+          React component to measure site usage. These providers may process technical or usage
+          information under their own terms and privacy policies. The hosting provider may
+          separately process technical data. Review the relevant providers' privacy information.
         </p>
         <ul className="list-disc space-y-2 pl-6 marker:text-brand-600">
           <li>
@@ -255,13 +255,13 @@ function PrivacyPage() {
           </li>
         </ul>
       </Section>
-      <Section title="9. Advertising and Google AdSense">
+      <Section title="9. Advertising">
         <p>
-          The application source contains the AdSense loader script, but no ad placements were
-          found in the app source. This alone does not establish that AdSense has approved the
-          site or that ads are currently being served. If advertising is enabled, Google may use
-          cookies or similar technologies to serve, measure, and personalize ads according to
-          its settings and policies. See{' '}
+          Public pages include an advertising placement. The ad provider may use cookies or
+          similar technologies and process technical information to serve and measure ads under
+          its own policies. Google's AdSense loader is also included, but this does not establish
+          that AdSense has approved the site or that AdSense ads are currently being served.
+          See{' '}
           <a
             href="https://policies.google.com/technologies/ads"
             target="_blank"

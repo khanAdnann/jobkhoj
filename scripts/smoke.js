@@ -717,13 +717,8 @@ await auth.login({ email: 'recruiter@jobkhoj.in', password: 'x' })
 const serviceRecruiterDash = await recruiterService.getRecruiterDashboard()
 check('recruiterService.getRecruiterDashboard resolves a handler', serviceRecruiterDash.company?.id)
 
-let recruiterJobsFailedClosed = false
-try {
-  await recruiterService.getRecruiterJobs({})
-} catch (error) {
-  recruiterJobsFailedClosed = error.message.includes('Supabase')
-}
-check('recruiterService.getRecruiterJobs refuses mock fallback', recruiterJobsFailedClosed)
+const serviceRecruiterJobs = await recruiterService.getRecruiterJobs({})
+check('recruiterService.getRecruiterJobs reads local recruiter jobs', Array.isArray(serviceRecruiterJobs))
 
 const serviceAnalytics = await recruiterService.getRecruiterAnalytics()
 check('recruiterService.getRecruiterAnalytics resolves a handler', serviceAnalytics.funnel.length > 0)
@@ -841,31 +836,46 @@ check(
   profileViaService.headline === 'Updated by smoke test',
 )
 
-let publicJobListFailedClosed = false
-try {
-  await jobService.listJobs({ pageSize: 5 })
-} catch (error) {
-  publicJobListFailedClosed = error.message.includes('Supabase')
-}
-check('jobService.listJobs refuses mock fallback', publicJobListFailedClosed)
-
-const mockJobCountBeforeUnconfiguredWrites = db.all('jobs').length
-for (const [label, operation] of [
-  ['create', () => jobService.createJob({ title: 'Must not be mocked' })],
-  ['update', () => jobService.updateJob('job-1001', { title: 'Must not be mocked' })],
-  ['delete', () => jobService.deleteJob('job-1001')],
-]) {
-  let failedClosed = false
-  try {
-    await operation()
-  } catch (error) {
-    failedClosed = error.message.includes('Supabase')
-  }
-  check(`jobService.${label}Job refuses mock fallback`, failedClosed)
-}
+await auth.login({ email: 'recruiter@jobkhoj.in', password: 'x' })
+const localJob = await jobService.createJob({
+  title: 'Local storage persistence test',
+  companyId: 'cmp-tcs',
+  createdBy: 'usr-recruiter-1',
+  department: 'Engineering',
+  location: 'Bengaluru',
+  workMode: 'Remote',
+  employmentType: 'Full-time',
+  experienceMin: 2,
+  experienceMax: 4,
+  experienceLabel: '2-4 Years',
+  skills: ['React'],
+  status: JOB_STATUS.ACTIVE,
+})
 check(
-  'unconfigured job writes do not change local mock storage',
-  db.all('jobs').length === mockJobCountBeforeUnconfiguredWrites,
+  'jobService.createJob persists local job in localStorage-backed database',
+  db.find('jobs', localJob.id)?.title === 'Local storage persistence test',
+)
+const localRecruiterJobs = await recruiterService.getRecruiterJobs({})
+check(
+  'Manage Jobs reads created local job',
+  localRecruiterJobs.some((job) => job.id === localJob.id),
+)
+const updatedLocalJob = await jobService.updateJob(localJob.id, {
+  title: 'Updated local storage job',
+})
+check(
+  'jobService.updateJob persists local changes',
+  updatedLocalJob.title === 'Updated local storage job',
+)
+const localPublicJobs = await jobService.listJobs({ pageSize: 100 })
+check(
+  'Browse Jobs reads locally persisted active job',
+  localPublicJobs.items.some((job) => job.id === localJob.id),
+)
+await jobService.deleteJob(localJob.id)
+check(
+  'jobService.deleteJob removes local job from localStorage-backed database',
+  !db.find('jobs', localJob.id),
 )
 
 const servicePipeline = await applicationService.getPipeline('job-1003')

@@ -1,4 +1,4 @@
-import { api, request } from './api'
+import { API_MODE, api, request } from './api'
 import * as mock from '@/mock/handlers/recruiter'
 import { requireSupabase } from './supabaseClient'
 import { getRecruiterJobs as getSupabaseRecruiterJobs } from './supabaseJobs'
@@ -21,6 +21,7 @@ export const getRecruiterAnalytics = () =>
   request(() => api.get('/recruiter/analytics'), () => mock.getRecruiterAnalytics())
 
 export const getRecruiterJobs = (params = {}) => {
+  if (API_MODE === 'mock') return mock.listRecruiterJobs(params)
   requireSupabase()
   return getSupabaseRecruiterJobs(params)
 }

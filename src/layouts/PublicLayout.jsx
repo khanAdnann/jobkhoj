@@ -2,6 +2,8 @@ import { Outlet } from 'react-router-dom'
 import { Info } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import SidebarAd from '@/components/layout/SidebarAd'
+import { API_MODE } from '@/services/api'
 
 /**
  * Shell for every public page (home, jobs, companies, auth).
@@ -21,13 +23,16 @@ export default function PublicLayout() {
           <span className="mx-auto inline-flex max-w-5xl items-start justify-center gap-2">
             <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>
-              Check job details directly with the employer before acting. When Supabase is
-              configured, job listings and recruiter job management use it; other demo areas
-              may still show sample data.
+              {API_MODE === 'mock'
+                ? 'Demo mode: jobs are saved only in this browser and are not sent to Supabase.'
+                : 'Check job details directly with the employer before acting.'}
             </span>
           </span>
         </aside>
-        <Outlet />
+        <div className="mx-auto grid w-full max-w-[1600px] min-[1200px]:grid-cols-[minmax(0,1fr)_160px] min-[1200px]:gap-6">
+          <Outlet />
+          <SidebarAd />
+        </div>
       </main>
 
       <Footer />
