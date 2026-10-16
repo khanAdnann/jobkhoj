@@ -8,6 +8,10 @@ existing login and registration screens and RLS-protected queries for public
 jobs and recruiter job management. The publishable key is intended for browser
 use; never place a Supabase service-role key in a `VITE_*` variable.
 
+`VITE_API_MODE` is separate: `mock` keeps REST-backed features that have not
+been migrated on the local demo data layer. It does not disable Supabase Auth
+or Supabase job reads/writes. Job operations do not fall back to localStorage.
+
 1. Run the entire [`supabase/schema.sql`](./supabase/schema.sql) once in the
    Supabase SQL Editor. It is a guarded first-install script: it aborts if its
    JobKhoj tables, helper functions, indexes, or auth trigger already exist.
@@ -31,7 +35,8 @@ use; never place a Supabase service-role key in a `VITE_*` variable.
    for each environment you use, then redeploy. Never use a secret/service-role
    key in either variable. Keep existing localStorage records; this integration
    does not delete or import them. Restart the local Vite server after changing
-   `.env`; Vite embeds these values at startup/build time.
+   `.env`; Vite embeds these values at startup/build time. Rebuild and redeploy
+   after changing Vercel environment variables.
 3. In **Authentication → URL Configuration**, allow the production site URL
    and the redirect URLs used by the app, including `/login` and
    `/reset-password`; also allow the local Vite origin during development.

@@ -9,9 +9,9 @@ import { buildSeed, resetSeedCache } from './seed'
  * publishing and moderating all need to *persist*. Static constants would make
  * every write disappear on reload and the app would feel like a demo.
  *
- * Each service in src/services/ calls the matching handler here while
- * `VITE_API_MODE=mock`. Switching to `live` bypasses this file entirely; the
- * service signatures are the same either way.
+ * REST-backed services in src/services/ call matching handlers here while
+ * `VITE_API_MODE=mock` or when their configured backend is unavailable. Direct
+ * Supabase services (currently auth and jobs) bypass this store.
  */
 
 const TABLES = [

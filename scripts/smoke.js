@@ -849,6 +849,25 @@ try {
 }
 check('jobService.listJobs refuses mock fallback', publicJobListFailedClosed)
 
+const mockJobCountBeforeUnconfiguredWrites = db.all('jobs').length
+for (const [label, operation] of [
+  ['create', () => jobService.createJob({ title: 'Must not be mocked' })],
+  ['update', () => jobService.updateJob('job-1001', { title: 'Must not be mocked' })],
+  ['delete', () => jobService.deleteJob('job-1001')],
+]) {
+  let failedClosed = false
+  try {
+    await operation()
+  } catch (error) {
+    failedClosed = error.message.includes('Supabase')
+  }
+  check(`jobService.${label}Job refuses mock fallback`, failedClosed)
+}
+check(
+  'unconfigured job writes do not change local mock storage',
+  db.all('jobs').length === mockJobCountBeforeUnconfiguredWrites,
+)
+
 const servicePipeline = await applicationService.getPipeline('job-1003')
 check('applicationService.getPipeline resolves a handler', Boolean(servicePipeline.columns))
 

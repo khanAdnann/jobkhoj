@@ -21,8 +21,9 @@ export default function PublicLayout() {
           <span className="mx-auto inline-flex max-w-5xl items-start justify-center gap-2">
             <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <span>
-              Check job details directly with the employer before acting. Demo mode may show
-              sample listings and company information.
+              Check job details directly with the employer before acting. When Supabase is
+              configured, job listings and recruiter job management use it; other demo areas
+              may still show sample data.
             </span>
           </span>
         </aside>

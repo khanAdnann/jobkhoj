@@ -9,12 +9,15 @@ import { TOKEN_KEY, USER_KEY } from '@/utils/constants'
  * reference a URL, and `VITE_API_BASE_URL` from .env is the single place a
  * backend address is configured.
  *
+ * `VITE_API_MODE` controls services that use this REST/mock request layer.
+ * It does not control Supabase Auth or job persistence: those use the
+ * Supabase client directly when both VITE_SUPABASE_* values are configured.
+ *
  * Modes
  * -----
- * VITE_API_MODE=mock  -> services read from src/mock (see src/services/*.js).
- * VITE_API_MODE=live  -> services call the backend. If the backend is
- *                        unreachable we flip to mock automatically so the UI
- *                        degrades gracefully instead of white-screening.
+ * VITE_API_MODE=mock  -> REST-backed services read from src/mock.
+ * VITE_API_MODE=live  -> REST-backed services call the configured backend.
+ *                        On network failure they may fall back to src/mock.
  */
 
 export const API_BASE_URL =
@@ -156,7 +159,8 @@ export function normalizeError(error) {
  *     () => mockListJobs(params),           // mock
  *   )
  *
- * In live mode a network failure transparently retries against the mock layer.
+ * In live REST mode a network failure transparently retries against the mock
+ * layer. Direct Supabase services do not use this helper and never fall back.
  * Real errors (4xx/5xx) are re-thrown so the UI can surface them.
  */
 export async function request(liveCall, mockCall) {
