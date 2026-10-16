@@ -1,31 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://jobkhoj-theta.vercel.app/</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/companies</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/about</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/contact</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/help</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/privacy-policy</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/terms</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1001</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1002</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1003</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1004</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1005</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1006</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1007</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1008</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1009</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1010</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1011</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1013</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1014</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1016</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1019</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1021</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1022</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1023</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1025</loc></url>
-  <url><loc>https://jobkhoj-theta.vercel.app/jobs/job-1026</loc></url>
+  <url>
+    <loc>https://jobkhoj-theta.vercel.app/</loc>
+  </url>
+  <url>
+    <loc>https://jobkhoj-theta.vercel.app/jobs</loc>
+  </url>
+  <url>
+    <loc>https://jobkhoj-theta.vercel.app/companies</loc>
+  </url>
+  <url>
+    <loc>https://jobkhoj-theta.vercel.app/about</loc>
+  </url>
+  <url>
+    <loc>https://jobkhoj-theta.vercel.app/contact</loc>
+  </url>
+  <url>
+    <loc>https://jobkhoj-theta.vercel.app/help</loc>
+  </url>
+  <url>
+    <loc>https://jobkhoj-theta.vercel.app/privacy-policy</loc>
+  </url>
+  <url>
+    <loc>https://jobkhoj-theta.vercel.app/terms</loc>
+  </url>
 </urlset>
+
+
