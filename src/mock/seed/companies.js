@@ -214,6 +214,16 @@ export const companies = [
     social: { linkedin: 'https://www.linkedin.com/company/ltimindtree' },
     verification: COMPANY_STATUS.PENDING,
   },
+  {
+    id: 'cmp-niti-technologies-india-software',
+    name: 'Niti Technologies India Software',
+    slug: 'niti-technologies-india-software',
+    industry: 'Information Technology & Services',
+    location: 'Kharadi, Pune, Maharashtra',
+    about:
+      'Niti Technologies India Software is hiring freshers and experienced developers for multiple IT roles in Pune.',
+    verification: COMPANY_STATUS.PENDING,
+  },
 ]
 
 export default companies

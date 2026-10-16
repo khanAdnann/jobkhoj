@@ -226,7 +226,9 @@ export default function JobDetails() {
               <MetaItem icon={Briefcase} label="Job type" value={job.employmentType} />
               <MetaItem icon={Clock} label="Work mode" value={job.workMode} />
               <MetaItem icon={GraduationCap} label="Experience" value={job.experienceLabel} />
-              <MetaItem icon={Users} label="Openings" value={String(job.openings)} />
+              {job.openings != null && (
+                <MetaItem icon={Users} label="Openings" value={String(job.openings)} />
+              )}
               <MetaItem
                 icon={CalendarClock}
                 label="Apply before"

@@ -10,6 +10,56 @@
  * time, which keeps "posted 2 days ago" fresh no matter when the seed runs.
  */
 export const jobs = [
+  {
+    id: 'job-niti-pune-developers-2026',
+    title: 'Freshers & Experienced Developers — Multiple Roles',
+    companyId: 'cmp-niti-technologies-india-software',
+    department: 'Software Development',
+    location: 'Kharadi, Pune, Maharashtra',
+    workMode: 'On-site',
+    employmentType: 'Full Time',
+    experience: { min: 0, max: 2, label: 'Fresher to 2 Years' },
+    salary: {},
+    skills: [
+      'Java Developer',
+      'Python Developer',
+      'Frontend Developer',
+      'MERN Stack Developer',
+      'Full Stack Developer',
+      '.NET Developer',
+      'Data Analyst',
+      'Business Analyst',
+      'Software Testing',
+      'Manual Testing',
+      'Automation Testing',
+    ],
+    education: 'BE / B.Tech / M.Tech / MCA',
+    description:
+      'Kickstart your IT career with Niti Technologies India Software.\n\n' +
+      'Open positions: Java Developer, Python Developer, Frontend Developer, MERN Stack Developer, Full Stack Developer, .NET Developer, Data Analyst / Business Analyst, and Software Testing (Manual & Automation).\n\n' +
+      'Eligibility: BE / B.Tech / M.Tech / MCA; passout years 2023, 2024, 2025, or 2026; fresher to 2 years of experience.\n\n' +
+      'Location: Kharadi, Pune (Pune candidates preferred).\n\n' +
+      'Apply by emailing hr@nititechnologiesindia.com or calling 7066147637 / 7066165593.\n\n' +
+      'Office address: 5th Floor, Building A, 18 City Vista, Kharadi, Pune, MH 411014.',
+    responsibilities: [
+      'Apply by emailing hr@nititechnologiesindia.com.',
+      'For enquiries, call 7066147637 or 7066165593.',
+      'Office: 5th Floor, Building A, 18 City Vista, Kharadi, Pune, MH 411014.',
+    ],
+    requirements: [
+      'Education: BE / B.Tech / M.Tech / MCA.',
+      'Eligible passout years: 2023, 2024, 2025, and 2026.',
+      'Experience: Fresher to 2 years.',
+      'Pune candidates preferred.',
+    ],
+    preferredSkills: [],
+    benefits: [],
+    postedDaysAgo: 0,
+    deadlineInDays: null,
+    openings: null,
+    featured: false,
+    createdBy: 'usr-rec-1',
+  },
   /* ------------------------------- TCS ---------------------------------- */
   {
     id: 'job-1001',

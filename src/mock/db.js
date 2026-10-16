@@ -25,6 +25,9 @@ const TABLES = [
 
 /** Tables that hold exactly one record. */
 const SINGLETONS = ['analytics']
+const NITI_JOB_SEED_MIGRATION = 'migration.niti-pune-job-2026'
+const NITI_JOB_ID = 'job-niti-pune-developers-2026'
+const NITI_COMPANY_ID = 'cmp-niti-technologies-india-software'
 
 let idCounter = Date.now()
 
@@ -39,10 +42,36 @@ function ensureSeeded(tableName) {
   if (!TABLES.includes(tableName)) {
     throw new Error(`[mock] Unknown table "${tableName}"`)
   }
-  if (storage.has(tableName)) return
+  if (!storage.has(tableName)) {
+    const seed = buildSeed()[tableName]
+    storage.set(tableName, seed ?? [])
+  }
 
-  const seed = buildSeed()[tableName]
-  storage.set(tableName, seed ?? [])
+  if (tableName === 'jobs' || tableName === 'companies') {
+    migrateNitiJobSeed()
+  }
+}
+
+function migrateNitiJobSeed() {
+  if (storage.has(NITI_JOB_SEED_MIGRATION)) return
+
+  const seed = buildSeed()
+  const company = seed.companies.find((row) => row.id === NITI_COMPANY_ID)
+  const job = seed.jobs.find((row) => row.id === NITI_JOB_ID)
+
+  for (const [tableName, record] of [
+    ['companies', company],
+    ['jobs', job],
+  ]) {
+    const rows = storage.has(tableName) ? storage.get(tableName, []) : seed[tableName] ?? []
+    if (record && !rows.some((row) => row.id === record.id)) {
+      storage.set(tableName, [...rows, record])
+    } else if (!storage.has(tableName)) {
+      storage.set(tableName, rows)
+    }
+  }
+
+  storage.set(NITI_JOB_SEED_MIGRATION, true)
 }
 
 function ensureSingleton(name) {
@@ -160,6 +189,7 @@ export const db = {
     resetSeedCache()
     TABLES.forEach((tableName) => storage.remove(tableName))
     SINGLETONS.forEach((name) => storage.remove(name))
+    storage.remove(NITI_JOB_SEED_MIGRATION)
     return db.stats()
   },
 
