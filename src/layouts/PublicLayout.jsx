@@ -3,6 +3,7 @@ import { Info } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import SidebarAd from '@/components/layout/SidebarAd'
+import SocialBarAds from '@/components/layout/SocialBarAds'
 import { API_MODE } from '@/services/api'
 
 /**
@@ -14,6 +15,7 @@ export default function PublicLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-ink-50">
       <Navbar />
+      <SocialBarAds />
 
       <main className="flex-1">
         <aside

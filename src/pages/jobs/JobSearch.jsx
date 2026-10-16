@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ListFilter, RefreshCw } from 'lucide-react'
 import JobCard from '@/components/jobs/JobCard'
 import { JobCardSkeletonList } from '@/components/jobs/JobCardSkeleton'
@@ -12,8 +12,41 @@ import { useAuth } from '@/hooks/useAuth'
 import { useFetch } from '@/hooks/useFetch'
 import { useJobFilters } from '@/hooks/useJobFilters'
 import PageMetadata from '@/components/seo/PageMetadata'
+import { mountAdUnit } from '@/utils/adUnits'
 
 const PAGE_SIZE = 12
+const BANNER_AD_OPTIONS = {
+  key: 'e7d327803ef28edb646156ab56417c51',
+  format: 'iframe',
+  height: 60,
+  width: 468,
+  params: {},
+}
+
+function JobsBannerAd() {
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return undefined
+
+    return mountAdUnit(
+      container,
+      BANNER_AD_OPTIONS,
+      'https://bicea.org/22/e7d327803ef28edb646156ab56417c51',
+      '468×60 jobs banner',
+    )
+  }, [])
+
+  return (
+    <aside
+      aria-label="Advertisement"
+      className="my-6 hidden justify-center min-[500px]:flex"
+    >
+      <div ref={containerRef} className="h-[60px] w-[468px] max-w-full" />
+    </aside>
+  )
+}
 
 /**
  * Public job search (PRD section 6): keyword + faceted filters, sorting,
@@ -96,6 +129,8 @@ export default function JobSearch() {
         activeFilterCount={activeCount}
         resultCount={loading ? undefined : data?.totalItems}
       />
+
+      <JobsBannerAd />
 
       <ActiveFilterChips
         className="mt-4"

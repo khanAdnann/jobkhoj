@@ -1,14 +1,13 @@
 import { useEffect, useRef } from 'react'
+import { mountAdUnit } from '@/utils/adUnits'
 
-const AD_OPTIONS = {
+const OPTIONS = {
   key: '0cd6bbd7a2786708eddeadfe6fd5c29a',
   format: 'iframe',
   height: 600,
   width: 160,
   params: {},
 }
-
-const AD_SCRIPT_URL = 'https://bicea.org/22/0cd6bbd7a2786708eddeadfe6fd5c29a'
 
 export default function SidebarAd() {
   const containerRef = useRef(null)
@@ -17,28 +16,12 @@ export default function SidebarAd() {
     const container = containerRef.current
     if (!container) return undefined
 
-    const previousOptions = window.atOptions
-    window.atOptions = AD_OPTIONS
-
-    const script = document.createElement('script')
-    script.src = AD_SCRIPT_URL
-    script.async = true
-    script.onerror = () => {
-      console.error('[ads] The sidebar ad script could not be loaded.')
-    }
-    container.appendChild(script)
-
-    return () => {
-      script.remove()
-      if (window.atOptions === AD_OPTIONS) {
-        if (previousOptions === undefined) {
-          delete window.atOptions
-        } else {
-          window.atOptions = previousOptions
-        }
-      }
-      container.replaceChildren()
-    }
+    return mountAdUnit(
+      container,
+      OPTIONS,
+      'https://bicea.org/22/0cd6bbd7a2786708eddeadfe6fd5c29a',
+      '160×600 sidebar ad',
+    )
   }, [])
 
   return (

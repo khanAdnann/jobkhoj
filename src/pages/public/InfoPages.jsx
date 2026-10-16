@@ -237,10 +237,11 @@ function PrivacyPage() {
       <Section title="8. Third-party services">
         <p>
           The application loads Google Fonts, includes Google's AdSense loader, and displays a
-          third-party sidebar ad unit on public pages. The project includes the Vercel Analytics
-          React component to measure site usage. These providers may process technical or usage
-          information under their own terms and privacy policies. The hosting provider may
-          separately process technical data. Review the relevant providers' privacy information.
+          third-party sidebar ad unit and social bar on public pages, and a banner ad on the job
+          listing page. The project includes the Vercel Analytics React component to measure site
+          usage. These providers may process technical or usage information under their own terms
+          and privacy policies. The hosting provider may separately process technical data.
+          Review the relevant providers' privacy information.
         </p>
         <ul className="list-disc space-y-2 pl-6 marker:text-brand-600">
           <li>
@@ -257,10 +258,11 @@ function PrivacyPage() {
       </Section>
       <Section title="9. Advertising">
         <p>
-          Public pages include an advertising placement. The ad provider may use cookies or
-          similar technologies and process technical information to serve and measure ads under
-          its own policies. Google's AdSense loader is also included, but this does not establish
-          that AdSense has approved the site or that AdSense ads are currently being served.
+          Public pages include third-party sidebar and social bar advertising placements, and the
+          job listing page includes a banner placement. The ad providers may use cookies or
+          similar technologies and process technical information under their respective policies.
+          Google's AdSense loader is also included, but this does not establish that the site has
+          been approved for AdSense or that AdSense ads are currently being served.
           See{' '}
           <a
             href="https://policies.google.com/technologies/ads"
