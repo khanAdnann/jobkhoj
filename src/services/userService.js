@@ -1,7 +1,9 @@
-import { api, request } from './api'
+import { API_MODE, api, request } from './api'
 import * as mock from '@/mock/handlers/users'
 // Profile writes live with the auth handlers, not the user CRUD handlers.
 import { updateProfile as mockUpdateProfile } from '@/mock/handlers/auth'
+import * as supabaseUsers from './supabaseUsers'
+import { updateProfile as updateSupabaseProfile } from './authService'
 
 /**
  * User service — profiles, resume, saved jobs and job alerts.
@@ -20,21 +22,36 @@ import { updateProfile as mockUpdateProfile } from '@/mock/handlers/auth'
  *   PUT    /users/me/job-alerts/:id
  *   DELETE /users/me/job-alerts/:id
  */
-export const getUser = (id) => request(() => api.get(`/users/${id}`), () => mock.getUser(id))
+export const getUser = (id) =>
+  API_MODE === 'mock'
+    ? mock.getUser(id)
+    : supabaseUsers.getUserById(id)
 
 export const updateProfile = (patch) =>
-  request(() => api.put('/users/me', patch), () => mockUpdateProfile(patch))
+  API_MODE === 'mock'
+    ? request(() => api.put('/users/me', patch), () => mockUpdateProfile(patch))
+    : updateSupabaseProfile(patch)
 
 /* --------------------------------- resume --------------------------------- */
 
 export const getResume = () =>
-  request(() => api.get('/users/me/resume'), () => mock.getResume())
+  API_MODE === 'mock'
+    ? request(() => api.get('/users/me/resume'), () => mock.getResume())
+    : supabaseUsers.getResume()
 
 /**
  * Resume upload.
  * Live mode must send multipart/form-data — the mock only records metadata.
  */
 export const uploadResume = (file) => {
+  if (API_MODE !== 'mock') {
+    const actualFile = file instanceof FormData ? file.get('file') : file
+    if (typeof File === 'undefined' || !(actualFile instanceof File)) {
+      return Promise.reject(new Error('A resume file is required.'))
+    }
+    return supabaseUsers.uploadResume(actualFile)
+  }
+
   if (file instanceof FormData) {
     return request(
       () =>
@@ -58,36 +75,54 @@ export const uploadResume = (file) => {
 }
 
 export const deleteResume = () =>
-  request(() => api.delete('/users/me/resume'), () => mock.deleteResume())
+  API_MODE === 'mock'
+    ? request(() => api.delete('/users/me/resume'), () => mock.deleteResume())
+    : supabaseUsers.deleteResume()
 
 /* ------------------------------- saved jobs ------------------------------- */
 
 export const getSavedJobs = () =>
-  request(() => api.get('/users/me/saved-jobs'), () => mock.listSavedJobs())
+  API_MODE === 'mock'
+    ? request(() => api.get('/users/me/saved-jobs'), () => mock.listSavedJobs())
+    : supabaseUsers.listSavedJobs()
 
 export const saveJob = (jobId) =>
-  request(() => api.post('/users/me/saved-jobs', { jobId }), () => mock.saveJob(jobId))
+  API_MODE === 'mock'
+    ? request(() => api.post('/users/me/saved-jobs', { jobId }), () => mock.saveJob(jobId))
+    : supabaseUsers.saveJob(jobId)
 
 export const removeSavedJob = (jobId) =>
-  request(() => api.delete(`/users/me/saved-jobs/${jobId}`), () => mock.removeSavedJob(jobId))
+  API_MODE === 'mock'
+    ? request(() => api.delete(`/users/me/saved-jobs/${jobId}`), () => mock.removeSavedJob(jobId))
+    : supabaseUsers.removeSavedJob(jobId)
 
 export const toggleSavedJob = (jobId) =>
-  request(() => api.post(`/users/me/saved-jobs/${jobId}/toggle`), () =>
-    mock.toggleSavedJob(jobId),
-  )
+  API_MODE === 'mock'
+    ? request(() => api.post(`/users/me/saved-jobs/${jobId}/toggle`), () =>
+        mock.toggleSavedJob(jobId),
+      )
+    : supabaseUsers.toggleSavedJob(jobId)
 
 /* ------------------------------- job alerts ------------------------------- */
 
 export const getJobAlerts = () =>
-  request(() => api.get('/users/me/job-alerts'), () => mock.listJobAlerts())
+  API_MODE === 'mock'
+    ? request(() => api.get('/users/me/job-alerts'), () => mock.listJobAlerts())
+    : supabaseUsers.listJobAlerts()
 
 export const createJobAlert = (payload) =>
-  request(() => api.post('/users/me/job-alerts', payload), () => mock.createJobAlert(payload))
+  API_MODE === 'mock'
+    ? request(() => api.post('/users/me/job-alerts', payload), () => mock.createJobAlert(payload))
+    : supabaseUsers.createJobAlert(payload)
 
 export const updateJobAlert = (id, patch) =>
-  request(() => api.put(`/users/me/job-alerts/${id}`, patch), () =>
-    mock.updateJobAlert(id, patch),
-  )
+  API_MODE === 'mock'
+    ? request(() => api.put(`/users/me/job-alerts/${id}`, patch), () =>
+        mock.updateJobAlert(id, patch),
+      )
+    : supabaseUsers.updateJobAlert(id, patch)
 
 export const deleteJobAlert = (id) =>
-  request(() => api.delete(`/users/me/job-alerts/${id}`), () => mock.deleteJobAlert(id))
+  API_MODE === 'mock'
+    ? request(() => api.delete(`/users/me/job-alerts/${id}`), () => mock.deleteJobAlert(id))
+    : supabaseUsers.deleteJobAlert(id)

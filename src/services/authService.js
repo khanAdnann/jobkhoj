@@ -2,7 +2,7 @@ import { api, request, setToken, clearToken, TOKEN_KEY, USER_KEY } from './api'
 import * as mock from '@/mock/handlers/auth'
 import { storage } from '@/utils/storage'
 import { JOB_STATUS } from '@/utils/constants'
-import { requireSupabase, supabaseEnabled } from './supabaseClient'
+import { requireSupabase, supabaseEnabled, supabaseMode } from './supabaseClient'
 
 function throwSupabaseError(error) {
   if (error) {
@@ -16,7 +16,7 @@ export async function getSupabaseAppUser(authUser) {
   const client = requireSupabase()
   const { data: profile, error } = await client
     .from('profiles')
-    .select('id,name,phone,role,company_name,company_size,company_id,recruiter_approved')
+    .select('id,name,phone,role,company_name,company_size,company_id,recruiter_approved,status,avatar_url,location,headline,bio,skills,years_of_experience,experience,education,projects,certifications,social,public_profile,resume_name,resume_size,resume_uploaded_at')
     .eq('id', authUser.id)
     .maybeSingle()
   throwSupabaseError(error)
@@ -38,7 +38,23 @@ export async function getSupabaseAppUser(authUser) {
     companyName: profile.company_name,
     companySize: profile.company_size,
     recruiterApproved: profile.recruiter_approved,
-    status: JOB_STATUS.ACTIVE,
+    status: profile.status || JOB_STATUS.ACTIVE,
+    avatar: profile.avatar_url,
+    location: profile.location,
+    headline: profile.headline,
+    bio: profile.bio,
+    skills: profile.skills ?? [],
+    yearsOfExperience: profile.years_of_experience,
+    experience: profile.experience ?? [],
+    education: profile.education ?? [],
+    projects: profile.projects ?? [],
+    certifications: profile.certifications ?? [],
+    social: profile.social ?? {},
+    publicProfile: profile.public_profile,
+    hasResume: Boolean(profile.resume_name),
+    resumeName: profile.resume_name,
+    resumeSize: profile.resume_size,
+    resumeUploadedAt: profile.resume_uploaded_at,
   }
 }
 
@@ -61,7 +77,7 @@ export async function getSupabaseAppUser(authUser) {
  */
 
 export const login = async (credentials) => {
-  if (supabaseEnabled) {
+  if (supabaseMode) {
     const client = requireSupabase()
     const { data, error } = await client.auth.signInWithPassword(credentials)
     throwSupabaseError(error)
@@ -79,7 +95,7 @@ export const login = async (credentials) => {
 }
 
 export const register = async (payload) => {
-  if (supabaseEnabled) {
+  if (supabaseMode) {
     const client = requireSupabase()
     const { data, error } = await client.auth.signUp({
       email: payload.email,
@@ -111,7 +127,7 @@ export const register = async (payload) => {
 }
 
 export const logout = async () => {
-  if (supabaseEnabled) {
+  if (supabaseMode) {
     const { error } = await requireSupabase().auth.signOut()
     throwSupabaseError(error)
     return { success: true }
@@ -128,7 +144,7 @@ export const logout = async () => {
 
 /** Restores the session on a hard refresh. */
 export const me = async () => {
-  if (supabaseEnabled) {
+  if (supabaseMode) {
     const { data, error } = await requireSupabase().auth.getUser()
     if (error?.message?.includes('Auth session missing')) return null
     throwSupabaseError(error)
@@ -139,7 +155,7 @@ export const me = async () => {
 }
 
 export const forgotPassword = async (payload) => {
-  if (supabaseEnabled) {
+  if (supabaseMode) {
     const { error } = await requireSupabase().auth.resetPasswordForEmail(payload.email, {
       redirectTo: `${window.location.origin}/reset-password`,
     })
@@ -154,7 +170,7 @@ export const forgotPassword = async (payload) => {
 }
 
 export const resetPassword = async (payload) => {
-  if (supabaseEnabled) {
+  if (supabaseMode) {
     const client = requireSupabase()
     const { error } = await client.auth.updateUser({ password: payload.password })
     throwSupabaseError(error)
@@ -173,49 +189,42 @@ export const resetPassword = async (payload) => {
 }
 
 export const updateProfile = async (patch) => {
-  if (supabaseEnabled) {
+  if (supabaseMode) {
     const client = requireSupabase()
     const { data: authData, error: authError } = await client.auth.getUser()
     throwSupabaseError(authError)
     if (!authData.user) throw new Error('Sign in before updating your profile.')
 
-    const profilePatch = {
+    const profileFields = {
       ...(patch.name !== undefined ? { name: patch.name } : {}),
       ...(patch.phone !== undefined ? { phone: patch.phone } : {}),
       ...(patch.companyName !== undefined ? { company_name: patch.companyName } : {}),
       ...(patch.companySize !== undefined ? { company_size: patch.companySize } : {}),
+      ...(patch.avatar !== undefined ? { avatar_url: patch.avatar } : {}),
+      ...(patch.location !== undefined ? { location: patch.location } : {}),
+      ...(patch.headline !== undefined ? { headline: patch.headline } : {}),
+      ...(patch.bio !== undefined ? { bio: patch.bio } : {}),
+      ...(patch.skills !== undefined ? { skills: patch.skills } : {}),
+      ...(patch.yearsOfExperience !== undefined
+        ? { years_of_experience: patch.yearsOfExperience }
+        : {}),
+      ...(patch.experience !== undefined ? { experience: patch.experience } : {}),
+      ...(patch.education !== undefined ? { education: patch.education } : {}),
+      ...(patch.projects !== undefined ? { projects: patch.projects } : {}),
+      ...(patch.certifications !== undefined ? { certifications: patch.certifications } : {}),
+      ...(patch.social !== undefined ? { social: patch.social } : {}),
+      ...(patch.publicProfile !== undefined ? { public_profile: patch.publicProfile } : {}),
     }
-    const metadataFields = [
-      'headline',
-      'location',
-      'bio',
-      'skills',
-      'experience',
-      'education',
-      'projects',
-      'certifications',
-      'social',
-      'yearsOfExperience',
-      'hasResume',
-      'resumeName',
-      'resumeSize',
-      'resumeUploadedAt',
-    ]
-    const metadataPatch = Object.fromEntries(
-      metadataFields
-        .filter((field) => patch[field] !== undefined)
-        .map((field) => [field, patch[field]]),
-    )
 
-    if (Object.keys(profilePatch).length) {
+    if (Object.keys(profileFields).length) {
       const { error } = await client
         .from('profiles')
-        .update(profilePatch)
+        .update(profileFields)
         .eq('id', authData.user.id)
       throwSupabaseError(error)
     }
-    if (Object.keys(metadataPatch).length) {
-      const { error } = await client.auth.updateUser({ data: metadataPatch })
+    if (patch.email && patch.email !== authData.user.email) {
+      const { error } = await client.auth.updateUser({ email: patch.email })
       throwSupabaseError(error)
     }
     const { data: refreshed, error: refreshError } = await client.auth.getUser()
@@ -230,7 +239,7 @@ export const updateProfile = async (patch) => {
 }
 
 export const changePassword = async (payload) => {
-  if (supabaseEnabled) {
+  if (supabaseMode) {
     const client = requireSupabase()
     const { data, error: userError } = await client.auth.getUser()
     throwSupabaseError(userError)

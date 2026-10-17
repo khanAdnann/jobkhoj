@@ -45,8 +45,6 @@ export default function Dashboard() {
 
   const { company, stats, recentApplicants = [], topJobs = [] } = query.data ?? {}
   const applicants = showAllApplicants ? recentApplicants : recentApplicants.slice(0, 4)
-  const needsApproval = stats?.pendingApproval ?? 0
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -59,23 +57,6 @@ export default function Dashboard() {
           </Button>
         }
       />
-
-      {needsApproval > 0 && (
-        <div className="flex flex-col gap-3 rounded-xl border border-warning-500/30 bg-warning-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-ink-700">
-            <strong className="font-semibold">{needsApproval} job{needsApproval === 1 ? '' : 's'}</strong>{' '}
-            {needsApproval === 1 ? 'is' : 'are'} waiting for admin approval before going live.
-          </p>
-          <Button
-            as={Link}
-            to={`${PATHS.recruiter.jobs}?status=${encodeURIComponent(JOB_STATUS.PENDING)}`}
-            variant="outline"
-            size="sm"
-          >
-            Review pending jobs
-          </Button>
-        </div>
-      )}
 
       {/* --------------------------------- stats ---------------------------- */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

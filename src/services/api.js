@@ -10,15 +10,15 @@ import { TOKEN_KEY, USER_KEY } from '@/utils/constants'
  * backend address is configured.
  *
  * `VITE_API_MODE=mock` selects browser-local mock auth and localStorage-backed
- * job persistence, even if Supabase credentials are present. `live` enables
- * Supabase when both VITE_SUPABASE_* values are configured and uses the REST
- * backend for services that have not migrated to Supabase.
+ * persistence, even if Supabase credentials are present. `live` enables
+ * Supabase-backed services and uses the REST backend for remaining endpoints.
  *
  * Modes
  * -----
  * VITE_API_MODE=mock  -> services use localStorage-backed mock handlers.
- * VITE_API_MODE=live  -> Supabase auth/jobs plus REST for other services.
- *                        REST calls may fall back to src/mock on network failure.
+ * VITE_API_MODE=live  -> Supabase auth/jobs/portal data plus REST for endpoints
+ *                        that do not yet have a Supabase implementation.
+ *                        Live requests never fall back to mock data.
  */
 
 export const API_BASE_URL =
@@ -65,11 +65,10 @@ export function onUnauthorized(handler) {
 let liveUnavailable = false
 
 /**
- * True when requests should be served by the mock layer — either because the
- * app is configured for mock mode, or because the live backend failed once.
+ * True only when the app is explicitly configured for mock mode.
  */
 export function isMockMode() {
-  return API_MODE === 'mock' || liveUnavailable
+  return API_MODE === 'mock'
 }
 
 /** Forces live mode back on (used by the "retry backend" admin action). */
@@ -153,30 +152,22 @@ export function normalizeError(error) {
 /* --------------------------------- request -------------------------------- */
 
 /**
- * Runs a service call against the right backend.
+ * Runs a service call against the configured backend.
  *
  *   return request(
  *     () => api.get('/jobs', { params }),   // live
  *     () => mockListJobs(params),           // mock
  *   )
  *
- * In live REST mode a network failure transparently retries against the mock
- * layer. Direct Supabase services do not use this helper and never fall back.
- * Real errors (4xx/5xx) are re-thrown so the UI can surface them.
+ * Mock handlers are available only when VITE_API_MODE=mock. Live network
+ * failures and HTTP errors are re-thrown so the UI can surface them.
  */
 export async function request(liveCall, mockCall) {
   if (isMockMode()) {
     return mockCall()
   }
 
-  try {
-    return await liveCall()
-  } catch (error) {
-    if (error.isNetworkError) {
-      return mockCall()
-    }
-    throw error
-  }
+  return liveCall()
 }
 
 export default api

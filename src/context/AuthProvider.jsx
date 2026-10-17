@@ -4,7 +4,7 @@ import { storage } from '@/utils/storage'
 import { clearToken, getToken, onUnauthorized } from '@/services/api'
 import * as authService from '@/services/authService'
 import { HOME_BY_ROLE, TOKEN_KEY, USER_KEY } from '@/utils/constants'
-import { supabaseEnabled } from '@/services/supabaseClient'
+import { supabaseMode } from '@/services/supabaseClient'
 
 /**
  * Authentication provider.
@@ -15,16 +15,16 @@ import { supabaseEnabled } from '@/services/supabaseClient'
  */
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(() =>
-    supabaseEnabled ? null : storage.get(USER_KEY, null),
+    supabaseMode ? null : storage.get(USER_KEY, null),
   )
   const [initialising, setInitialising] = useState(() =>
-    supabaseEnabled ? true : Boolean(getToken()),
+    supabaseMode ? true : Boolean(getToken()),
   )
 
   /* --------------------------- session restore --------------------------- */
 
   useEffect(() => {
-    if (supabaseEnabled) {
+    if (supabaseMode) {
       let cancelled = false
 
       authService
@@ -86,7 +86,7 @@ export default function AuthProvider({ children }) {
 
   useEffect(
     () => {
-      if (supabaseEnabled) return undefined
+      if (supabaseMode) return undefined
 
       return onUnauthorized(() => {
         clearToken()
@@ -115,7 +115,7 @@ export default function AuthProvider({ children }) {
     try {
       await authService.logout()
     } finally {
-      if (!supabaseEnabled) {
+      if (!supabaseMode) {
         // Always clear the legacy mock/backend session, even if logout failed.
         clearToken()
         storage.remove(USER_KEY)
@@ -128,14 +128,14 @@ export default function AuthProvider({ children }) {
   const refresh = useCallback(async () => {
     const fresh = await authService.me()
     setUser(fresh)
-    if (!supabaseEnabled) storage.set(USER_KEY, fresh)
+    if (!supabaseMode) storage.set(USER_KEY, fresh)
     return fresh
   }, [])
 
   const updateUser = useCallback((patch) => {
     setUser((prev) => {
       const next = { ...prev, ...patch }
-      if (!supabaseEnabled) storage.set(USER_KEY, next)
+      if (!supabaseMode) storage.set(USER_KEY, next)
       return next
     })
   }, [])

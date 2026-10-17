@@ -104,9 +104,11 @@ export default function ApplyModal({ open, onClose, job, onApplied }) {
       .then((result) => {
         if (!cancelled) setResume(result)
       })
-      .catch(() => {
-        // No resume yet — the UI shows an upload prompt instead.
-        if (!cancelled) setResume(null)
+      .catch((error) => {
+        if (!cancelled) {
+          setResume(null)
+          toast.error(error.message || 'Could not load your resume.')
+        }
       })
       .finally(() => {
         if (!cancelled) setResumeLoading(false)
@@ -115,7 +117,7 @@ export default function ApplyModal({ open, onClose, job, onApplied }) {
     return () => {
       cancelled = true
     }
-  }, [open, user, setValue])
+  }, [open, user, setValue, toast])
 
   async function onSubmit() {
     setSubmitting(true)

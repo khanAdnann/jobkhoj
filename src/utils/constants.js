@@ -29,7 +29,7 @@ export const ROLE_LABELS = {
 export const HOME_BY_ROLE = {
   [ROLES.JOB_SEEKER]: '/dashboard',
   [ROLES.RECRUITER]: '/recruiter/dashboard',
-  [ROLES.ADMIN]: '/admin',
+  [ROLES.ADMIN]: '/',
 }
 
 /* ------------------------------ Job taxonomy ----------------------------- */

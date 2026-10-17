@@ -1,5 +1,6 @@
--- One-time install for a project without these JobKhoj objects. This guard
--- prevents this script from replacing existing tables, functions, or triggers.
+-- One-time install for a project without the JobKhoj profiles/jobs tables.
+-- Existing auth signup trigger is preserved and its function is refreshed;
+-- other helper functions use namespaced names to avoid collisions.
 begin;
 
 do $preflight$
@@ -10,30 +11,11 @@ begin
       'JobKhoj profiles/jobs already exist. Stop and prepare a migration instead of running this installer.';
   end if;
 
-  if to_regprocedure('public.set_updated_at()') is not null
-    or to_regprocedure('public.set_job_search_document()') is not null
-    or to_regprocedure('public.bind_job_owner_company()') is not null
-    or to_regprocedure('public.create_profile_for_auth_user()') is not null then
-    raise exception
-      'A JobKhoj trigger function already exists. Inspect it before installing this schema.';
-  end if;
-
   if to_regclass('public.jobs_public_status_deadline_posted_idx') is not null
     or to_regclass('public.jobs_owner_posted_idx') is not null
     or to_regclass('public.jobs_search_document_idx') is not null then
     raise exception
       'A JobKhoj index name already exists. Inspect it before installing this schema.';
-  end if;
-
-  if exists (
-    select 1
-    from pg_catalog.pg_trigger
-    where tgrelid = 'auth.users'::regclass
-      and tgname = 'on_auth_user_created_jobkhoj'
-      and not tgisinternal
-  ) then
-    raise exception
-      'The JobKhoj auth trigger already exists. Inspect it before installing this schema.';
   end if;
 end;
 $preflight$;
@@ -108,7 +90,7 @@ create index jobs_owner_posted_idx
 create index jobs_search_document_idx
   on public.jobs using gin (search_document);
 
-create function public.set_updated_at()
+create function public.jobkhoj_set_updated_at()
 returns trigger
 language plpgsql
 set search_path = pg_catalog
@@ -121,13 +103,13 @@ $$;
 
 create trigger profiles_set_updated_at
   before update on public.profiles
-  for each row execute function public.set_updated_at();
+  for each row execute function public.jobkhoj_set_updated_at();
 
 create trigger jobs_set_updated_at
   before update on public.jobs
-  for each row execute function public.set_updated_at();
+  for each row execute function public.jobkhoj_set_updated_at();
 
-create function public.set_job_search_document()
+create function public.jobkhoj_set_job_search_document()
 returns trigger
 language plpgsql
 set search_path = pg_catalog
@@ -146,13 +128,13 @@ begin
 end;
 $$;
 
-revoke all on function public.set_job_search_document() from public, anon, authenticated;
+revoke all on function public.jobkhoj_set_job_search_document() from public, anon, authenticated;
 
 create trigger jobs_search_document
   before insert or update on public.jobs
-  for each row execute function public.set_job_search_document();
+  for each row execute function public.jobkhoj_set_job_search_document();
 
-create function public.bind_job_owner_company()
+create function public.jobkhoj_bind_job_owner_company()
 returns trigger
 language plpgsql
 security definer
@@ -179,13 +161,13 @@ begin
 end;
 $$;
 
-revoke all on function public.bind_job_owner_company() from public, anon, authenticated;
+revoke all on function public.jobkhoj_bind_job_owner_company() from public, anon, authenticated;
 
 create trigger jobs_bind_owner_company
   before insert or update on public.jobs
-  for each row execute function public.bind_job_owner_company();
+  for each row execute function public.jobkhoj_bind_job_owner_company();
 
-create function public.create_profile_for_auth_user()
+create or replace function public.create_profile_for_auth_user()
 returns trigger
 language plpgsql
 security definer
@@ -211,9 +193,23 @@ $$;
 
 revoke all on function public.create_profile_for_auth_user() from public, anon, authenticated;
 
-create trigger on_auth_user_created_jobkhoj
-  after insert on auth.users
-  for each row execute function public.create_profile_for_auth_user();
+do $auth_trigger$
+begin
+  if not exists (
+    select 1
+    from pg_catalog.pg_trigger
+    where tgrelid = 'auth.users'::regclass
+      and tgname = 'on_auth_user_created_jobkhoj'
+      and not tgisinternal
+  ) then
+    execute $trigger$
+      create trigger on_auth_user_created_jobkhoj
+      after insert on auth.users
+      for each row execute function public.create_profile_for_auth_user()
+    $trigger$;
+  end if;
+end;
+$auth_trigger$;
 
 alter table public.profiles enable row level security;
 alter table public.jobs enable row level security;

@@ -1,4 +1,4 @@
-import { api, request } from './api'
+import { API_MODE, api, request } from './api'
 import * as mock from '@/mock/handlers/admin'
 // User moderation and company verification are owned by their own handler
 // modules; only the overview/report/moderation endpoints live in admin.js.
@@ -17,6 +17,7 @@ import {
   suspendCompany as mockSuspendCompany,
 } from '@/mock/handlers/companies'
 import { JOB_STATUS, COMPANY_STATUS } from '@/utils/constants'
+import * as supabase from './supabaseAdmin'
 
 /**
  * Admin service — moderation and platform reporting.
@@ -33,19 +34,28 @@ import { JOB_STATUS, COMPANY_STATUS } from '@/utils/constants'
  *   DELETE /admin/users/:id
  */
 export const getAdminOverview = () =>
-  request(() => api.get('/admin/overview'), () => mock.getAdminOverview())
+  API_MODE === 'mock'
+    ? request(() => api.get('/admin/overview'), () => mock.getAdminOverview())
+    : supabase.getAdminOverview()
 
-export const getReports = () => request(() => api.get('/admin/reports'), () => mock.getReports())
+export const getReports = () =>
+  API_MODE === 'mock'
+    ? request(() => api.get('/admin/reports'), () => mock.getReports())
+    : supabase.getAdminReports()
 
 /* ---------------------------------- jobs ---------------------------------- */
 
 export const getAdminJobs = (params = {}) =>
-  request(() => api.get('/admin/jobs', { params }), () => mock.listAdminJobs(params))
+  API_MODE === 'mock'
+    ? request(() => api.get('/admin/jobs', { params }), () => mock.listAdminJobs(params))
+    : supabase.getAdminJobs(params)
 
 export const setJobStatus = (id, status) =>
-  request(() => api.put(`/admin/jobs/${id}/status`, { status }), () =>
-    mock.setJobStatus(id, status),
-  )
+  API_MODE === 'mock'
+    ? request(() => api.put(`/admin/jobs/${id}/status`, { status }), () =>
+        mock.setJobStatus(id, status),
+      )
+    : supabase.setAdminJobStatus(id, status)
 
 export const approveJob = (id) => setJobStatus(id, JOB_STATUS.ACTIVE)
 export const rejectJob = (id) => setJobStatus(id, JOB_STATUS.REJECTED)
@@ -54,45 +64,65 @@ export const closeJob = (id) => setJobStatus(id, JOB_STATUS.CLOSED)
 /* -------------------------------- companies ------------------------------- */
 
 export const getAdminCompanies = (params = {}) =>
-  request(() => api.get('/admin/companies', { params }), () => mock.listAdminCompanies(params))
+  API_MODE === 'mock'
+    ? request(() => api.get('/admin/companies', { params }), () => mock.listAdminCompanies(params))
+    : supabase.getAdminCompanies(params)
 
 export const verifyCompany = (id) =>
-  request(() => api.put(`/admin/companies/${id}/verify`, { verification: COMPANY_STATUS.VERIFIED }), () =>
-    mockVerifyCompany(id),
-  )
+  API_MODE === 'mock'
+    ? request(() => api.put(`/admin/companies/${id}/verify`, { verification: COMPANY_STATUS.VERIFIED }), () =>
+        mockVerifyCompany(id),
+      )
+    : supabase.setAdminCompanyStatus(id, COMPANY_STATUS.VERIFIED)
 
 export const rejectCompany = (id) =>
-  request(() => api.put(`/admin/companies/${id}/verify`, { verification: COMPANY_STATUS.REJECTED }), () =>
-    mockRejectCompany(id),
-  )
+  API_MODE === 'mock'
+    ? request(() => api.put(`/admin/companies/${id}/verify`, { verification: COMPANY_STATUS.REJECTED }), () =>
+        mockRejectCompany(id),
+      )
+    : supabase.setAdminCompanyStatus(id, COMPANY_STATUS.REJECTED)
 
 export const suspendCompany = (id) =>
-  request(() => api.put(`/admin/companies/${id}/verify`, { verification: COMPANY_STATUS.SUSPENDED }), () =>
-    mockSuspendCompany(id),
-  )
+  API_MODE === 'mock'
+    ? request(() => api.put(`/admin/companies/${id}/verify`, { verification: COMPANY_STATUS.SUSPENDED }), () =>
+        mockSuspendCompany(id),
+      )
+    : supabase.setAdminCompanyStatus(id, COMPANY_STATUS.SUSPENDED)
 
 /* ------------------------------- applications ----------------------------- */
 
 export const getAdminApplications = (params = {}) =>
-  request(() => api.get('/admin/applications', { params }), () =>
-    mock.listAdminApplications(params),
-  )
+  API_MODE === 'mock'
+    ? request(() => api.get('/admin/applications', { params }), () =>
+        mock.listAdminApplications(params),
+      )
+    : supabase.getAdminApplications(params)
 
 /* ---------------------------------- users --------------------------------- */
 
 export const getAdminUsers = (params = {}) =>
-  request(() => api.get('/admin/users', { params }), () => mockListUsers(params))
+  API_MODE === 'mock'
+    ? request(() => api.get('/admin/users', { params }), () => mockListUsers(params))
+    : supabase.getAdminUsers(params)
 
 export const setUserStatus = (id, status) =>
-  request(() => api.put(`/admin/users/${id}/status`, { status }), () => mockSetUserStatus(id, status))
+  API_MODE === 'mock'
+    ? request(() => api.put(`/admin/users/${id}/status`, { status }), () => mockSetUserStatus(id, status))
+    : supabase.setAdminUserStatus(id, status)
 
 export const deleteUser = (id) =>
-  request(() => api.delete(`/admin/users/${id}`), () => mockDeleteUser(id))
+  API_MODE === 'mock'
+    ? request(() => api.delete(`/admin/users/${id}`), () => mockDeleteUser(id))
+    : supabase.deleteAdminUser(id)
 
 /* -------------------------------- platform -------------------------------- */
 
 export const getUserStats = () =>
-  request(() => api.get('/admin/users/stats'), () => mockGetUserStats())
+  API_MODE === 'mock'
+    ? request(() => api.get('/admin/users/stats'), () => mockGetUserStats())
+    : supabase.getAdminUserStats()
 
 export const resetMockData = () =>
-  request(() => api.post('/admin/mock-data/reset'), () => mockResetMockData())
+  API_MODE === 'mock'
+    ? request(() => api.post('/admin/mock-data/reset'), () => mockResetMockData())
+    : supabase.resetAdminMockData()

@@ -6,12 +6,13 @@ const supabaseUrl = viteEnv.VITE_SUPABASE_URL?.trim()
 const publishableKey = viteEnv.VITE_SUPABASE_PUBLISHABLE_KEY?.trim()
 const credentialsConfigured = Boolean(supabaseUrl && publishableKey)
 
-if (API_MODE !== 'mock' && Boolean(supabaseUrl) !== Boolean(publishableKey)) {
+if (API_MODE !== 'mock' && (!supabaseUrl || !publishableKey)) {
   throw new Error(
-    'Configure both VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to enable Supabase.',
+    'VITE_API_MODE is live, but Supabase credentials are missing. Configure VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.',
   )
 }
 
+export const supabaseMode = API_MODE !== 'mock'
 export const supabaseEnabled = API_MODE !== 'mock' && credentialsConfigured
 
 export const supabase = supabaseEnabled

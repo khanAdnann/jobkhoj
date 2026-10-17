@@ -2,6 +2,7 @@ import { API_MODE, api, request } from './api'
 import * as mock from '@/mock/handlers/recruiter'
 import { requireSupabase } from './supabaseClient'
 import { getRecruiterJobs as getSupabaseRecruiterJobs } from './supabaseJobs'
+import * as supabase from './supabaseRecruiter'
 
 /**
  * Recruiter service — everything scoped to the signed-in recruiter's company.
@@ -12,13 +13,19 @@ import { getRecruiterJobs as getSupabaseRecruiterJobs } from './supabaseJobs'
  *   GET /recruiter/jobs
  */
 export const getRecruiterProfile = () =>
-  request(() => api.get('/recruiter/profile'), () => mock.getRecruiterProfile())
+  API_MODE === 'mock'
+    ? request(() => api.get('/recruiter/profile'), () => mock.getRecruiterProfile())
+    : supabase.getRecruiterProfile()
 
 export const getRecruiterDashboard = () =>
-  request(() => api.get('/recruiter/dashboard'), () => mock.getRecruiterDashboard())
+  API_MODE === 'mock'
+    ? request(() => api.get('/recruiter/dashboard'), () => mock.getRecruiterDashboard())
+    : supabase.getRecruiterDashboard()
 
 export const getRecruiterAnalytics = () =>
-  request(() => api.get('/recruiter/analytics'), () => mock.getRecruiterAnalytics())
+  API_MODE === 'mock'
+    ? request(() => api.get('/recruiter/analytics'), () => mock.getRecruiterAnalytics())
+    : supabase.getRecruiterAnalytics()
 
 export const getRecruiterJobs = (params = {}) => {
   if (API_MODE === 'mock') return mock.listRecruiterJobs(params)

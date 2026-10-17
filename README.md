@@ -2,12 +2,15 @@
 
 ## Supabase setup
 
-`VITE_API_MODE=mock` selects localStorage-backed demo authentication and job
-storage. This mode ignores Supabase credentials and saves jobs only in the
-current browser. `VITE_API_MODE=live` enables Supabase Auth and jobs when both
-`VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are set; other services
-may use the configured REST backend. Never put a Supabase service-role key in
-a `VITE_*` variable.
+`VITE_API_MODE=mock` selects the existing localStorage-backed demo mode and
+ignores Supabase credentials. `VITE_API_MODE=live` requires both
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`, and uses Supabase for
+Auth, jobs, profiles, applications, saved jobs, alerts, resumes, companies,
+recruiter dashboards. Admin tools are temporarily disabled, while the ADMIN
+profile role remains supported. Remaining legacy endpoints still
+use the configured REST backend; live network failures are shown as errors and
+are never replaced with mock data. Never put a Supabase service-role key in a
+`VITE_*` variable.
 
 1. Run the entire [`supabase/schema.sql`](./supabase/schema.sql) once in the
    Supabase SQL Editor. It is a guarded first-install script: it aborts if its
@@ -19,7 +22,20 @@ a `VITE_*` variable.
    avoiding PostgreSQL's immutable-expression restriction on generated
    columns. If an earlier run reported an error before `COMMIT`, check whether
    the tables exist before retrying; the transaction should have rolled back.
-2. Set the Supabase project's URL and **publishable** key under
+   If `public.profiles` and `public.jobs` already exist, **do not rerun that
+   first-install script**. Review and run the additive
+   [`supabase/migrations/20261017000000_portal_data.sql`](./supabase/migrations/20261017000000_portal_data.sql)
+   instead. It adds the portal data tables and columns, RLS policies, private
+   resume bucket, and administration functions; it does not create or
+   delete existing jobs/profiles tables.
+2. Apply the remaining files in [`supabase/migrations/`](./supabase/migrations/)
+   in timestamp order through
+   [`20261017040000_disable_admin_and_recruiter_approval.sql`](./supabase/migrations/20261017040000_disable_admin_and_recruiter_approval.sql).
+   This temporarily disables admin authorization, allows active recruiters to
+   publish jobs without approval, and makes existing pending recruiter jobs
+   active. Keep the `ADMIN` role and `recruiter_approved` column; neither needs
+   to be removed.
+3. Set the Supabase project's URL and **publishable** key under
    **Project Settings → API Keys**. In local `.env`, map them to:
 
    ```dotenv
@@ -54,6 +70,20 @@ a `VITE_*` variable.
 
    This approval field cannot be changed by the browser client.
 
+6. Provision the first administrator manually using a trusted Auth user UUID
+   in **SQL Editor** (never expose an admin/service-role credential in the
+   browser):
+
+   ```sql
+   update public.profiles
+   set role = 'ADMIN'
+   where id = 'AUTH_USER_UUID'::uuid;
+   ```
+
+   The migration intentionally does not promote an account automatically.
+   Existing recruiter approval remains a separate trusted action as shown
+   above.
+
    If the recruiter already existed in Supabase Auth before this schema was
    installed, the signup trigger did not create their profile retroactively.
    Insert a profile for that specific Auth user before approving them:
@@ -77,5 +107,10 @@ a `VITE_*` variable.
 
 In `live` mode, public job reads are limited by RLS to active, non-expired
 listings. Recruiters can manage only their own jobs after approval. Drafts and
-other non-public statuses are visible only to their owner. In `mock` mode,
-jobs are saved in the browser and are not shared with Supabase or other users.
+other non-public statuses are visible only to their owner. Saved jobs, job
+alerts, applications, resumes, and recruiter dashboards require this additive
+migration. Resume files are stored in a private bucket; recruiters can receive
+short-lived links only for applications to jobs they own. Account deletion is
+not available in live mode until a trusted Supabase Edge Function is deployed.
+In `mock` mode, records continue to use the browser's local demo data; this
+integration does not delete or automatically import those records.

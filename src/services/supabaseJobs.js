@@ -1,4 +1,4 @@
-import { JOB_STATUS } from '@/utils/constants'
+import { JOB_STATUS, USER_STATUS } from '@/utils/constants'
 import { requireSupabase } from './supabaseClient'
 
 const JOB_COLUMNS = [
@@ -131,7 +131,7 @@ async function currentProfile() {
 
   const { data: profile, error } = await client
     .from('profiles')
-    .select('id,role,recruiter_approved,company_id,company_name')
+    .select('id,role,status,company_id,company_name')
     .eq('id', authData.user.id)
     .single()
   throwIfError(error)
@@ -139,10 +139,8 @@ async function currentProfile() {
   if (profile.role !== 'RECRUITER') {
     throw new Error('This Supabase account is not registered with the RECRUITER role.')
   }
-  if (!profile.recruiter_approved) {
-    throw new Error(
-      'Your Supabase recruiter profile is not approved yet. Ask the JobKhoj administrator to set recruiter_approved to true.',
-    )
+  if (profile.status !== USER_STATUS.ACTIVE) {
+    throw new Error('An active recruiter account is required to manage jobs.')
   }
   if (!profile.company_name?.trim()) {
     throw new Error(

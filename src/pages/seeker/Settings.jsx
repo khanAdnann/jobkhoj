@@ -10,6 +10,7 @@ import Switch from '@/components/common/Switch'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import * as userService from '@/services/userService'
+import { API_MODE } from '@/services/api'
 import * as authService from '@/services/authService'
 
 /**
@@ -62,7 +63,16 @@ export default function Settings() {
     defaultValues: { name: user?.name ?? '', email: user?.email ?? '', phone: user?.phone ?? '' },
   })
 
-  function setPref(key, value) {
+  async function setPref(key, value) {
+    if (key === 'showProfilePublicly' && API_MODE !== 'mock') {
+      try {
+        const updated = await userService.updateProfile({ publicProfile: value })
+        updateUser(updated)
+      } catch (error) {
+        toast.error(error.message)
+        return
+      }
+    }
     const next = { ...preferences, [key]: value }
     setPreferences(next)
     localStorage.setItem(PREFERENCES_KEY, JSON.stringify(next))
@@ -264,7 +274,11 @@ export default function Settings() {
             <CardHeader title="Privacy" />
             <div className="space-y-4 p-5">
               <Switch
-                checked={preferences.showProfilePublicly}
+                checked={
+                  API_MODE === 'mock'
+                    ? preferences.showProfilePublicly
+                    : Boolean(user?.publicProfile)
+                }
                 onChange={(value) => setPref('showProfilePublicly', value)}
                 label="Public profile"
                 description="Let recruiters view your profile without an invitation."

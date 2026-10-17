@@ -288,10 +288,22 @@ export default function ApplicantDetails() {
               {application.resumeName && (
                 <p className="flex items-center justify-between gap-3">
                   <span className="text-ink-500">Resume</span>
-                  <span className="inline-flex items-center gap-1.5 text-ink-800">
+                  {application.resumeUrl ? (
+                    <a
+                      href={application.resumeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-brand-600 hover:underline"
+                    >
+                      <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                      {application.resumeName}
+                    </a>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-ink-800">
                     <Download className="h-3.5 w-3.5 text-ink-400" aria-hidden="true" />
                     {application.resumeName}
-                  </span>
+                    </span>
+                  )}
                 </p>
               )}
               {job && (

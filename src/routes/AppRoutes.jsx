@@ -7,7 +7,6 @@ import RoleRoute from './RoleRoute'
 import PublicLayout from '@/layouts/PublicLayout'
 import SeekerLayout from '@/layouts/SeekerLayout'
 import RecruiterLayout from '@/layouts/RecruiterLayout'
-import AdminLayout from '@/layouts/AdminLayout'
 
 /* ---------------------------------------------------------------------------
  * Auth pages are eager: they are small, and the login page is the entry point
@@ -53,14 +52,6 @@ const Candidates = lazy(() => import('@/pages/recruiter/Candidates'))
 const RecruiterAnalytics = lazy(() => import('@/pages/recruiter/Analytics'))
 const RecruiterSettings = lazy(() => import('@/pages/recruiter/Settings'))
 
-const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard'))
-const AdminUsers = lazy(() => import('@/pages/admin/Users'))
-const AdminRecruiters = lazy(() => import('@/pages/admin/Recruiters'))
-const AdminCompanies = lazy(() => import('@/pages/admin/Companies'))
-const AdminJobs = lazy(() => import('@/pages/admin/Jobs'))
-const AdminApplications = lazy(() => import('@/pages/admin/Applications'))
-const AdminReports = lazy(() => import('@/pages/admin/Reports'))
-
 const ToolsLanding = lazy(() => import('@/pages/tools/index'))
 const ToolsAtsChecker = lazy(() => import('@/pages/tools/AtsChecker'))
 const ToolsResumeBuilder = lazy(() => import('@/pages/tools/ResumeBuilder'))
@@ -99,8 +90,7 @@ import { ROLES } from '@/utils/constants'
  * Access rules (PRD section 34):
  *   <ProtectedRoute>            any signed-in user
  *   <RoleRoute roles={[...]}>   one specific role
- *   admin paths accept all three roles because the seeded admin needs to review
- *   recruiter and company records; the nav itself only shows admin links to admins.
+ *   admin paths are temporarily disabled; ADMIN remains a valid stored role.
  */
 export default function AppRoutes() {
   return (
@@ -177,7 +167,7 @@ export default function AppRoutes() {
       <Route
         path="recruiter"
         element={
-          <RoleRoute roles={[ROLES.RECRUITER, ROLES.ADMIN]}>
+          <RoleRoute roles={[ROLES.RECRUITER]}>
             <RecruiterLayout />
           </RoleRoute>
         }
@@ -196,23 +186,8 @@ export default function AppRoutes() {
         <Route path="settings" element={<RecruiterSettings />} />
       </Route>
 
-      {/* ------------------------------ admin -------------------------------- */}
-      <Route
-        path="admin"
-        element={
-          <RoleRoute roles={[ROLES.ADMIN]}>
-            <AdminLayout />
-          </RoleRoute>
-        }
-      >
-        <Route index element={<AdminDashboard />} />
-        <Route path="users" element={<AdminUsers />} />
-        <Route path="recruiters" element={<AdminRecruiters />} />
-        <Route path="companies" element={<AdminCompanies />} />
-        <Route path="jobs" element={<AdminJobs />} />
-        <Route path="applications" element={<AdminApplications />} />
-        <Route path="reports" element={<AdminReports />} />
-      </Route>
+      {/* Admin tools are disabled temporarily without changing stored roles. */}
+      <Route path="admin/*" element={<Navigate to="/" replace />} />
 
       {/* ------------------------------- errors ------------------------------ */}
       <Route path="403" element={<Forbidden />} />
