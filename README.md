@@ -30,11 +30,15 @@ are never replaced with mock data. Never put a Supabase service-role key in a
    delete existing jobs/profiles tables.
 2. Apply the remaining files in [`supabase/migrations/`](./supabase/migrations/)
    in timestamp order through
-   [`20261017040000_disable_admin_and_recruiter_approval.sql`](./supabase/migrations/20261017040000_disable_admin_and_recruiter_approval.sql).
+   [`20261017050000_job_level_company_name.sql`](./supabase/migrations/20261017050000_job_level_company_name.sql).
    This temporarily disables admin authorization, allows active recruiters to
-   publish jobs without approval, and makes existing pending recruiter jobs
-   active. Keep the `ADMIN` role and `recruiter_approved` column; neither needs
-   to be removed.
+   publish jobs without admin approval, makes existing pending recruiter jobs
+   active, and lets recruiters enter the company name for each job. Keep the
+   `ADMIN` role and `recruiter_approved` column; neither needs to be removed.
+   Active job posts require the recruiter to confirm they are authorized to
+   recruit for the named company. Custom names are displayed as recruiter-
+   provided and are not independently verified or linked to a verified
+   company directory entry.
 3. Set the Supabase project's URL and **publishable** key under
    **Project Settings → API Keys**. In local `.env`, map them to:
 
@@ -57,36 +61,11 @@ are never replaced with mock data. Never put a Supabase service-role key in a
 4. The seeded demo recruiter is a mock account, not a Supabase Auth user, so
    its demo password cannot authenticate with Supabase. Sign up a real
    recruiter account using the existing registration page, confirm the email
-   if Supabase requests it, and sign in. This creates a profile with approval
-   disabled.
-5. After reviewing the recruiter, find their UUID in **Authentication →
-   Users**, then approve their profile in the SQL Editor:
-
-   ```sql
-   update public.profiles
-   set recruiter_approved = true
-   where id = 'AUTH_USER_UUID' and role = 'RECRUITER';
-   ```
-
-   This approval field cannot be changed by the browser client.
-
-6. Provision the first administrator manually using a trusted Auth user UUID
-   in **SQL Editor** (never expose an admin/service-role credential in the
-   browser):
-
-   ```sql
-   update public.profiles
-   set role = 'ADMIN'
-   where id = 'AUTH_USER_UUID'::uuid;
-   ```
-
-   The migration intentionally does not promote an account automatically.
-   Existing recruiter approval remains a separate trusted action as shown
-   above.
-
-   If the recruiter already existed in Supabase Auth before this schema was
+   if Supabase requests it, and sign in. Active recruiter profiles can post
+   jobs without a separate admin approval step.
+5. If the recruiter already existed in Supabase Auth before this schema was
    installed, the signup trigger did not create their profile retroactively.
-   Insert a profile for that specific Auth user before approving them:
+   Insert a profile for that specific Auth user:
 
    ```sql
    insert into public.profiles (id, name, phone, role, company_name, company_size)
@@ -106,8 +85,8 @@ are never replaced with mock data. Never put a Supabase service-role key in a
    ```
 
 In `live` mode, public job reads are limited by RLS to active, non-expired
-listings. Recruiters can manage only their own jobs after approval. Drafts and
-other non-public statuses are visible only to their owner. Saved jobs, job
+listings. Active recruiters can manage only their own jobs. Drafts and other
+non-public statuses are visible only to their owner. Saved jobs, job
 alerts, applications, resumes, and recruiter dashboards require this additive
 migration. Resume files are stored in a private bucket; recruiters can receive
 short-lived links only for applications to jobs they own. Account deletion is

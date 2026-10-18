@@ -42,7 +42,10 @@ export async function getRecruiterDashboard() {
   const recruiter = currentRecruiter()
   const company = db.find('companies', recruiter.companyId)
 
-  const jobs = db.where('jobs', (row) => row.companyId === recruiter.companyId)
+  const jobs = db.where(
+    'jobs',
+    (row) => row.createdBy === recruiter.id || row.companyId === recruiter.companyId,
+  )
   const jobIds = new Set(jobs.map((job) => job.id))
   const applications = db.where('applications', (row) => jobIds.has(row.jobId))
 
@@ -99,7 +102,10 @@ export async function getRecruiterAnalytics() {
   const platform = db.singleton('analytics')
   const companyId = recruiter.companyId
 
-  const jobs = db.where('jobs', (row) => row.companyId === companyId)
+  const jobs = db.where(
+    'jobs',
+    (row) => row.createdBy === recruiter.id || row.companyId === companyId,
+  )
   const jobIds = new Set(jobs.map((job) => job.id))
   const applications = db.where('applications', (row) => jobIds.has(row.jobId))
 
@@ -168,7 +174,10 @@ export async function listRecruiterJobs({ status } = {}) {
 
   const recruiter = currentRecruiter()
 
-  let jobs = db.where('jobs', (row) => row.companyId === recruiter.companyId)
+  let jobs = db.where(
+    'jobs',
+    (row) => row.createdBy === recruiter.id || row.companyId === recruiter.companyId,
+  )
 
   if (status && status !== 'all') {
     jobs = jobs.filter((row) => row.status === status)

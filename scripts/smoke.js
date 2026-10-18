@@ -439,8 +439,10 @@ check(
 
 const recruiterJobs = await recruiter.listRecruiterJobs({})
 check(
-  'recruiter job list is company-scoped',
-  recruiterJobs.every((job) => job.companyId === 'cmp-tcs'),
+  'recruiter job list is scoped to the recruiter or registered company',
+  recruiterJobs.every(
+    (job) => job.companyId === 'cmp-tcs' || job.createdBy === recruiterSession.user.id,
+  ),
   `${recruiterJobs.length} jobs`,
 )
 
@@ -455,6 +457,7 @@ check('analytics work-mode split built', analytics.byWorkMode.length === 3)
 const created = await jobs.createJob({
   title: 'Test Java Role',
   companyId: 'cmp-tcs',
+  companyAuthorized: true,
   department: 'Software Development',
   location: 'Mumbai, Maharashtra',
   workMode: 'Hybrid',
@@ -467,6 +470,51 @@ const created = await jobs.createJob({
 })
 check('recruiter can create a job', created.title === 'Test Java Role')
 check('new job starts with zero applicants', created.applicantCount === 0)
+
+const customCompanyJob = await jobs.createJob({
+  title: 'Custom Company Role',
+  companyId: 'cmp-tcs',
+  companyName: 'Acme Test Company',
+  companyAuthorized: true,
+  department: 'Engineering',
+  location: 'Remote',
+  workMode: 'Remote',
+  employmentType: 'Full Time',
+  status: JOB_STATUS.ACTIVE,
+})
+check(
+  'job can use a custom recruiter-provided company name without a directory link',
+  customCompanyJob.companyName === 'Acme Test Company' && customCompanyJob.companyId === null,
+)
+check(
+  'recruiter can manage a job under a custom company name',
+  (await recruiter.listRecruiterJobs({})).some((job) => job.id === customCompanyJob.id),
+)
+const updatedCustomCompanyJob = await jobs.updateJob(customCompanyJob.id, {
+  companyName: 'Another Hiring Company',
+})
+check(
+  'changing the custom company name removes any mismatched directory relationship',
+  updatedCustomCompanyJob.companyName === 'Another Hiring Company' &&
+    updatedCustomCompanyJob.companyId === null,
+)
+await jobs.deleteJob(customCompanyJob.id)
+
+let activeJobWithoutAuthorizationRejected = false
+try {
+  await jobs.createJob({
+    title: 'Unattested Job',
+    companyId: 'cmp-tcs',
+    department: 'Engineering',
+    location: 'Remote',
+    workMode: 'Remote',
+    employmentType: 'Full Time',
+    status: JOB_STATUS.ACTIVE,
+  })
+} catch {
+  activeJobWithoutAuthorizationRejected = true
+}
+check('active jobs require recruiter authorization attestation', activeJobWithoutAuthorizationRejected)
 
 const duplicated = await jobs.duplicateJob(created.id)
 check('job duplication works', duplicated.title === 'Test Java Role (Copy)')
@@ -863,6 +911,7 @@ await auth.login({ email: 'recruiter@jobkhoj.in', password: 'x' })
 const localJob = await jobService.createJob({
   title: 'Local storage persistence test',
   companyId: 'cmp-tcs',
+  companyAuthorized: true,
   createdBy: 'usr-recruiter-1',
   department: 'Engineering',
   location: 'Bengaluru',

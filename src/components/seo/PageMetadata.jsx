@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-
-const SITE_ORIGIN = 'https://jobkhoj-theta.vercel.app'
+import { SITE_ORIGIN } from '@/utils/jobSeo'
 const DEFAULT_TITLE = 'JobKhoj — Find Your Dream Job. Build Your Future.'
 
 function setMeta(attribute, key, content) {
@@ -44,15 +43,24 @@ function setCanonical(href) {
   }
 }
 
-export default function PageMetadata({ title, description }) {
+export default function PageMetadata({
+  title,
+  description,
+  canonical,
+  robots = 'index, follow',
+}) {
   const { pathname } = useLocation()
 
   useEffect(() => {
     const previousTitle = document.title
-    const canonicalPath = pathname === '/' ? '/' : pathname.replace(/\/+$/, '')
-    const canonicalUrl = `${SITE_ORIGIN}${canonicalPath}`
+    const canonicalPath =
+      canonical ?? (pathname === '/' ? '/' : pathname.replace(/\/+$/, ''))
+    const canonicalUrl = canonicalPath.startsWith('https://')
+      ? canonicalPath
+      : `${SITE_ORIGIN}${canonicalPath.startsWith('/') ? '' : '/'}${canonicalPath}`
     const cleanups = [
       setMeta('name', 'description', description),
+      setMeta('name', 'robots', robots),
       setMeta('property', 'og:title', title),
       setMeta('property', 'og:description', description),
       setMeta('property', 'og:url', canonicalUrl),
@@ -67,7 +75,7 @@ export default function PageMetadata({ title, description }) {
       document.title = previousTitle || DEFAULT_TITLE
       cleanups.reverse().forEach((cleanup) => cleanup())
     }
-  }, [description, pathname, title])
+  }, [canonical, description, pathname, robots, title])
 
   return null
 }

@@ -13,6 +13,7 @@ import { PATHS } from '@/routes/paths'
 import { formatSalaryRange, timeAgo } from '@/utils/format'
 import { COMPANY_STATUS } from '@/utils/constants'
 import { cn } from '@/utils/cn'
+import { getJobDetailsPath } from '@/utils/jobSeo'
 
 /**
  * Job result card used by search, saved jobs, similar-jobs and the home page
@@ -61,7 +62,7 @@ export default function JobCard({ job, saved = false, onSavedChange, className }
             <div className="min-w-0">
               <h3 className="text-base font-semibold text-ink-900">
                 <Link
-                  to={PATHS.jobDetails(id)}
+                  to={getJobDetailsPath(job)}
                   className="transition-colors hover:text-brand-600 after:absolute after:inset-0 after:content-['']"
                 >
                   {title}
@@ -86,6 +87,11 @@ export default function JobCard({ job, saved = false, onSavedChange, className }
                     strokeWidth={2.5}
                     aria-label="Verified company"
                   />
+                )}
+                {company?.name && !company.id && (
+                  <span className="text-xs text-ink-500">
+                    Recruiter-provided; not independently verified
+                  </span>
                 )}
 
                 {department && (

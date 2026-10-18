@@ -26,6 +26,7 @@ import NotFound from '@/pages/errors/NotFound'
 const Home = lazy(() => import('@/pages/Home'))
 const JobSearch = lazy(() => import('@/pages/jobs/JobSearch'))
 const JobDetails = lazy(() => import('@/pages/jobs/JobDetails'))
+const JobCategory = lazy(() => import('@/pages/jobs/JobCategory'))
 const CompanyDirectory = lazy(() => import('@/pages/companies/CompanyDirectory'))
 const CompanyDetails = lazy(() => import('@/pages/companies/CompanyDetails'))
 const PublicInfoPage = lazy(() => import('@/pages/public/InfoPages'))
@@ -99,6 +100,14 @@ export default function AppRoutes() {
       <Route element={<PublicLayout />}>
         <Route index element={<Home />} />
         <Route path="jobs" element={<JobSearch />} />
+        <Route path="jobs/java-developer-jobs" element={<JobCategory slug="java-developer-jobs" />} />
+        <Route path="jobs/software-developer-jobs" element={<JobCategory slug="software-developer-jobs" />} />
+        <Route path="jobs/fresher-jobs" element={<JobCategory slug="fresher-jobs" />} />
+        <Route path="jobs/remote-jobs" element={<JobCategory slug="remote-jobs" />} />
+        <Route path="jobs/spring-boot-jobs" element={<JobCategory slug="spring-boot-jobs" />} />
+        <Route path="jobs/backend-developer-jobs" element={<JobCategory slug="backend-developer-jobs" />} />
+        <Route path="jobs/internship-jobs" element={<JobCategory slug="internship-jobs" />} />
+        <Route path="jobs/banking-jobs" element={<JobCategory slug="banking-jobs" />} />
         <Route path="jobs/:id" element={<JobDetails />} />
         <Route path="companies" element={<CompanyDirectory />} />
         <Route path="companies/:slug" element={<CompanyDetails />} />

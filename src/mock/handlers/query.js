@@ -96,6 +96,9 @@ export function applyFilters(jobs, filters = {}, companyById = new Map()) {
 
   return jobs.filter((job) => {
     if (job.status !== JOB_STATUS.ACTIVE) return false
+    if (job.deadline && String(job.deadline).slice(0, 10) < new Date().toISOString().slice(0, 10)) {
+      return false
+    }
     if (!matchesQuery(job, filters.query, companyById)) return false
     if (!matchesDateFilter(job, filters.postedDate)) return false
 
@@ -105,6 +108,13 @@ export function applyFilters(jobs, filters = {}, companyById = new Map()) {
     if (workModes.length && !workModes.includes(job.workMode)) return false
 
     if (experiences.length && !experiences.includes(job.experienceLabel)) return false
+    if (
+      filters.experienceMax !== undefined &&
+      Number.isFinite(Number(job.experienceMin)) &&
+      Number(job.experienceMin) > Number(filters.experienceMax)
+    ) {
+      return false
+    }
 
     if (companies.length) {
       const companyName = job.companyName ?? companyById.get(job.companyId)?.name ?? ''

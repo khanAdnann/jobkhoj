@@ -10,6 +10,7 @@ import Input from '@/components/common/Input'
 import Textarea from '@/components/common/Textarea'
 import Select from '@/components/common/Select'
 import TagInput from '@/components/common/TagInput'
+import Checkbox from '@/components/common/Checkbox'
 import Skeleton from '@/components/common/Skeleton'
 import EmptyState from '@/components/common/EmptyState'
 import { useFetch } from '@/hooks/useFetch'
@@ -55,6 +56,8 @@ export default function JobForm({ mode = 'create' }) {
     formState: { errors, isSubmitting },
   } = useForm({
     defaultValues: {
+      companyName: user?.companyName ?? '',
+      companyAuthorized: false,
       title: '',
       department: DEPARTMENTS[0],
       location: '',
@@ -83,6 +86,8 @@ export default function JobForm({ mode = 'create' }) {
     if (!job) return
 
     reset({
+      companyName: job.companyName ?? '',
+      companyAuthorized: job.companyAuthorized ?? false,
       title: job.title ?? '',
       department: job.department ?? DEPARTMENTS[0],
       location: job.location ?? '',
@@ -128,8 +133,14 @@ export default function JobForm({ mode = 'create' }) {
   /* -------------------------------- submit ------------------------------- */
 
   async function submit(values, status) {
+    if (status === JOB_STATUS.ACTIVE && !values.companyAuthorized) {
+      toast.error('Confirm you are authorized to recruit for this company before publishing.')
+      return
+    }
+
     const payload = {
       ...values,
+      companyName: values.companyName.trim(),
       salaryMin: values.salaryMin === '' ? null : Number(values.salaryMin),
       salaryMax: values.salaryMax === '' ? null : Number(values.salaryMax),
       experienceMin: Number(values.experienceMin),
@@ -231,6 +242,25 @@ export default function JobForm({ mode = 'create' }) {
           <CardHeader title="Role basics" subtitle="What the job is and where." />
 
           <div className="space-y-4 p-5">
+            <Field
+              label="Company hiring for"
+              htmlFor="companyName"
+              required
+              error={errors.companyName?.message}
+              hint="This name appears on the public job listing. Custom company names are not independently verified by JobKhoj."
+            >
+              <Input
+                id="companyName"
+                placeholder="Company name"
+                maxLength={120}
+                {...register('companyName', {
+                  required: 'Company name is required',
+                  maxLength: { value: 120, message: 'Company name must be 120 characters or fewer' },
+                  validate: (value) => Boolean(value?.trim()) || 'Company name is required',
+                })}
+              />
+            </Field>
+
             <Field label="Job title" htmlFor="title" required error={errors.title?.message}>
               <Input
                 id="title"
@@ -470,11 +500,18 @@ export default function JobForm({ mode = 'create' }) {
 
         {/* --------------------------- publish --------------------------- */}
         <div className="flex flex-col-reverse gap-3 rounded-xl border border-ink-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-ink-500">
-            {isEdit
-              ? 'Saving updates the public job page immediately.'
-              : 'Publishing makes the job visible to candidates right away.'}
-          </p>
+          <div className="space-y-3">
+            <Checkbox
+              label="I am authorized to recruit for this company and confirm this listing is accurate."
+              description="JobKhoj does not independently verify custom company names."
+              {...register('companyAuthorized')}
+            />
+            <p className="text-xs text-ink-500">
+              {isEdit
+                ? 'Saving updates the public job page immediately.'
+                : 'Publishing makes the job visible to candidates right away.'}
+            </p>
+          </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <Button

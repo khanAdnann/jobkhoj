@@ -36,6 +36,14 @@ import { PATHS } from '@/routes/paths'
 import { formatDate, formatSalaryRange, timeAgo } from '@/utils/format'
 import { COMPANY_STATUS, JOB_STATUS } from '@/utils/constants'
 import PageMetadata from '@/components/seo/PageMetadata'
+import {
+  createJobPosting,
+  getJobDetailsPath,
+  getJobIdFromRouteParam,
+  getJobSummary,
+  isPublicJob,
+  serializeJobPosting,
+} from '@/utils/jobSeo'
 
 /**
  * Public job detail page (PRD section 8).
@@ -45,6 +53,7 @@ import PageMetadata from '@/components/seo/PageMetadata'
  */
 export default function JobDetails() {
   const { id } = useParams()
+  const jobId = getJobIdFromRouteParam(id)
   const navigate = useNavigate()
   const toast = useToast()
   const { isAuthenticated } = useAuth()
@@ -53,16 +62,25 @@ export default function JobDetails() {
   const [applyOpen, setApplyOpen] = useState(false)
   const [hasApplied, setHasApplied] = useState(false)
 
-  const { data: job, loading, error, refetch } = useFetch(() => getJob(id), [id])
+  const { data: job, loading, error, refetch } = useFetch(() => getJob(jobId), [jobId])
 
-  const { data: similar } = useFetch(() => getSimilarJobs(id, 4), [id], {
+  const { data: similar } = useFetch(() => getSimilarJobs(jobId, 4), [jobId], {
     initialData: [],
   })
 
   /* Fire-and-forget view counter. */
   useEffect(() => {
-    if (id) trackJobView(id)
-  }, [id])
+    if (jobId) trackJobView(jobId)
+  }, [jobId])
+
+  useEffect(() => {
+    if (job && isPublicJob(job)) {
+      const canonicalPath = getJobDetailsPath(job)
+      if (window.location.pathname !== canonicalPath) {
+        navigate(canonicalPath, { replace: true })
+      }
+    }
+  }, [job, navigate])
 
   const handleShare = useCallback(async () => {
     const url = window.location.href
@@ -103,6 +121,11 @@ export default function JobDetails() {
 
     return (
       <div className="mx-auto w-full max-w-2xl px-4 py-20">
+        <PageMetadata
+          title="Job listing unavailable | JobKhoj"
+          description="This job listing is unavailable. Browse current job openings on JobKhoj."
+          robots="noindex, follow"
+        />
         <EmptyState
           icon="search"
           title={notFound ? 'This job is no longer available' : 'We couldn’t load this job'}
@@ -135,14 +158,31 @@ export default function JobDetails() {
   if (!job) return null
 
   const alreadyApplied = job.hasApplied || hasApplied
-  const isClosed = job.status !== JOB_STATUS.ACTIVE
+  const isIndexable = isPublicJob(job)
+  const isClosed = !isIndexable
+  const companyName = job.company?.name ?? job.companyName ?? 'JobKhoj'
+  const canonicalPath = getJobDetailsPath(job)
+  const salaryAvailable =
+    (Number.isFinite(Number(job.salaryMin)) && Number(job.salaryMin) > 0) ||
+    (Number.isFinite(Number(job.salaryMax)) && Number(job.salaryMax) > 0)
+  const jobPosting = createJobPosting(job)
+  const structuredData = serializeJobPosting(jobPosting)
+  const seoDescription = `${job.title} jobs in ${job.location} at ${companyName}. Review the job description, experience, skills${salaryAvailable ? ', salary' : ''}, and application details on JobKhoj.`
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <PageMetadata
-        title={`${job.title} at ${job.company?.name ?? 'JobKhoj'} | JobKhoj`}
-        description={`${job.title} at ${job.company?.name ?? 'JobKhoj'} in ${job.location}. View role details, requirements, and how to apply.`}
+        title={`${job.title} Jobs in ${job.location} at ${companyName} | JobKhoj`}
+        description={seoDescription}
+        canonical={canonicalPath}
+        robots={isIndexable ? 'index, follow' : 'noindex, follow'}
       />
+      {structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: structuredData }}
+        />
+      )}
       <Breadcrumb
         className="mb-4"
         items={[
@@ -186,13 +226,20 @@ export default function JobDetails() {
                 </div>
 
                 <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-sm text-ink-600">
-                  {job.company && (
+                  {job.company && (job.company.slug || job.company.id) ? (
                     <Link
                       to={PATHS.companyDetails(job.company.slug ?? job.company.id)}
                       className="font-semibold text-ink-800 hover:text-brand-600 hover:underline"
                     >
                       {job.company.name}
                     </Link>
+                  ) : job.company?.name ? (
+                    <span className="font-semibold text-ink-800">{job.company.name}</span>
+                  ) : null}
+                  {job.company && !job.company.id && (
+                    <span className="text-xs text-ink-500">
+                      Recruiter-provided company name; not independently verified
+                    </span>
                   )}
                   {job.company?.verification === COMPANY_STATUS.VERIFIED && (
                     <BadgeCheck
@@ -210,9 +257,18 @@ export default function JobDetails() {
                     </>
                   )}
                 </p>
+                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-ink-600">
+                  {getJobSummary(job)}
+                </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  onClick={handleApply}
+                  disabled={isClosed || alreadyApplied}
+                >
+                  {alreadyApplied ? 'Already applied' : isClosed ? 'Closed' : 'Apply Now'}
+                </Button>
                 <Button variant="outline" onClick={handleShare}>
                   <Share2 className="h-4 w-4" aria-hidden="true" />
                   {shareState === 'copied' ? 'Copied' : 'Share'}
@@ -236,14 +292,16 @@ export default function JobDetails() {
               />
             </ul>
 
-            <div className="mt-6 border-t border-ink-200 pt-5">
-              <p className="text-xs font-semibold tracking-wide text-ink-500 uppercase">
-                Salary range
-              </p>
-              <p className="mt-1 text-xl font-bold text-success-700">
-                {formatSalaryRange(job.salaryMin, job.salaryMax)}
-              </p>
-            </div>
+            {salaryAvailable && (
+              <div className="mt-6 border-t border-ink-200 pt-5">
+                <p className="text-xs font-semibold tracking-wide text-ink-500 uppercase">
+                  Salary range
+                </p>
+                <p className="mt-1 text-xl font-bold text-success-700">
+                  {formatSalaryRange(job.salaryMin, job.salaryMax)} LPA
+                </p>
+              </div>
+            )}
           </Card>
 
           {isClosed && (
@@ -335,13 +393,15 @@ export default function JobDetails() {
                   </div>
                 </dl>
 
-                <Link
-                  to={PATHS.companyDetails(job.company.slug ?? job.company.id)}
-                  className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:underline"
-                >
-                  View company profile
-                  <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </Link>
+                {(job.company.slug || job.company.id) && (
+                  <Link
+                    to={PATHS.companyDetails(job.company.slug ?? job.company.id)}
+                    className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:underline"
+                  >
+                    View company profile
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Link>
+                )}
               </CardBody>
             </Card>
           )}

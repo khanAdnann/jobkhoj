@@ -34,12 +34,32 @@ function hydrate(job, companies) {
           verification: company.verification,
           website: company.website,
         }
-      : null,
+      : job.companyName
+        ? { id: null, name: job.companyName, slug: null, verification: null }
+        : null,
   }
 }
 
 function hydrateAll(jobs, companies) {
   return jobs.map((job) => hydrate(job, companies))
+}
+
+function resolveCompany(payload, fallback = {}) {
+  const requestedCompanyName = payload.companyName?.trim()
+  const registeredCompany = db.find(
+    'companies',
+    payload.companyId ?? fallback.companyId,
+  )
+  const companyName =
+    requestedCompanyName || registeredCompany?.name || fallback.companyName || ''
+  const matchesRegisteredCompany =
+    registeredCompany &&
+    companyName.toLocaleLowerCase() === registeredCompany.name.toLocaleLowerCase()
+
+  return {
+    companyId: matchesRegisteredCompany ? registeredCompany.id : null,
+    companyName,
+  }
 }
 
 /* --------------------------------- reads ---------------------------------- */
@@ -192,15 +212,22 @@ export async function getFacets() {
 export async function createJob(payload) {
   await delay(420, 760)
 
-  const companyId = payload.companyId
-  const company = db.find('companies', companyId)
+  const { companyId, companyName } = resolveCompany(payload)
+  const status = payload.status ?? JOB_STATUS.ACTIVE
+  if (!companyName || companyName.length > 120) {
+    throw new Error('Enter a company name of 1 to 120 characters.')
+  }
+  if (status === JOB_STATUS.ACTIVE && !payload.companyAuthorized) {
+    throw new Error('Confirm authorization to recruit for this company before publishing.')
+  }
 
   const record = {
     id: db.insert('jobs', {
       id: `job-${Date.now().toString().slice(-5)}`,
       title: payload.title,
       companyId,
-      companyName: company?.name ?? 'Unknown',
+      companyName,
+      companyAuthorized: payload.companyAuthorized ?? false,
       department: payload.department,
       location: payload.location,
       workMode: payload.workMode,
@@ -214,7 +241,7 @@ export async function createJob(payload) {
       education: payload.education ?? '',
       openings: payload.openings ?? 1,
       featured: false,
-      status: payload.status ?? JOB_STATUS.ACTIVE,
+      status,
       description: payload.description ?? '',
       responsibilities: payload.responsibilities ?? [],
       requirements: payload.requirements ?? [],
@@ -224,7 +251,7 @@ export async function createJob(payload) {
       deadline: payload.deadline ?? null,
       views: 0,
       applicantCount: 0,
-      createdBy: payload.createdBy ?? null,
+      createdBy: payload.createdBy ?? getCurrentUserId(),
     }).id,
   }
 
@@ -238,10 +265,18 @@ export async function updateJob(id, patch) {
   if (!existing) throw new Error('Job not found')
 
   const next = { ...patch }
+  if (patch.companyName !== undefined || patch.companyId !== undefined) {
+    Object.assign(next, resolveCompany(patch, existing))
+  }
 
   if (patch.salaryMin !== undefined || patch.salaryMax !== undefined) {
     next.salaryMin = patch.salaryMin ?? existing.salaryMin
     next.salaryMax = patch.salaryMax ?? existing.salaryMax
+  }
+
+  const updated = { ...existing, ...next }
+  if (updated.status === JOB_STATUS.ACTIVE && !updated.companyAuthorized) {
+    throw new Error('Confirm authorization to recruit for this company before publishing.')
   }
 
   db.update('jobs', id, { ...next, updatedAt: new Date().toISOString() })

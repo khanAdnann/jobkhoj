@@ -27,6 +27,32 @@ function callJobStorage(supabaseOperation, localOperation) {
 export const listJobs = (params = {}) =>
   callJobStorage(() => supabaseJobs.listJobs(params), () => localJobs.listJobs(params))
 
+export async function getAllPublicJobs({ filters = {}, sort = 'newest' } = {}) {
+  const pageSize = 1000
+  const firstPage = await listJobs({
+    filters,
+    sort,
+    page: 1,
+    pageSize,
+    includeFacets: false,
+  })
+  if (firstPage.totalPages <= 1) return firstPage.items
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.totalPages - 1 }, (_, index) =>
+      listJobs({
+        filters,
+        sort,
+        page: index + 2,
+        pageSize,
+        includeFacets: false,
+      }),
+    ),
+  )
+
+  return [...firstPage.items, ...remainingPages.flatMap((result) => result.items)]
+}
+
 export const getJob = (id) =>
   callJobStorage(() => supabaseJobs.getJob(id), () => localJobs.getJob(id))
 

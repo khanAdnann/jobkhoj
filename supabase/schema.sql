@@ -39,6 +39,7 @@ create table public.jobs (
   owner_id uuid not null references public.profiles (id) on delete cascade,
   company_id text,
   company_name text not null,
+  company_authorized boolean not null default false,
   title text not null
     check (length(btrim(title)) between 1 and 80),
   department text not null default '' check (length(btrim(department)) > 0),
@@ -147,16 +148,24 @@ begin
   from public.profiles
   where id = (select auth.uid());
 
-  if recruiter.id is null
-    or recruiter.role <> 'RECRUITER'
-    or not recruiter.recruiter_approved
-    or nullif(btrim(recruiter.company_name), '') is null then
-    raise exception 'Only approved recruiters can manage jobs.';
+  if recruiter.id is null or recruiter.role <> 'RECRUITER' then
+    raise exception 'Only recruiters can manage jobs.';
   end if;
 
   new.owner_id = recruiter.id;
-  new.company_id = recruiter.company_id;
-  new.company_name = recruiter.company_name;
+  new.company_name = coalesce(nullif(btrim(new.company_name), ''), recruiter.company_name);
+  if new.company_name is null or length(new.company_name) > 120 then
+    raise exception 'Enter a company name of 1 to 120 characters.';
+  end if;
+  if new.status = 'Active' and not new.company_authorized then
+    raise exception 'Confirm authorization to recruit for this company before publishing.';
+  end if;
+  new.company_id = case
+    when recruiter.company_name is not null
+      and lower(new.company_name) = lower(recruiter.company_name)
+      then recruiter.company_id
+    else null
+  end;
   return new;
 end;
 $$;
@@ -164,7 +173,7 @@ $$;
 revoke all on function public.jobkhoj_bind_job_owner_company() from public, anon, authenticated;
 
 create trigger jobs_bind_owner_company
-  before insert or update on public.jobs
+  before insert or update of owner_id, company_id, company_name on public.jobs
   for each row execute function public.jobkhoj_bind_job_owner_company();
 
 create or replace function public.create_profile_for_auth_user()
@@ -232,6 +241,7 @@ grant select (
   id,
   company_id,
   company_name,
+  company_authorized,
   title,
   department,
   location,
@@ -263,6 +273,8 @@ grant select (
 grant select (owner_id) on public.jobs to authenticated;
 grant insert (
   owner_id,
+  company_name,
+  company_authorized,
   title,
   department,
   location,
@@ -285,6 +297,8 @@ grant insert (
   deadline
 ) on public.jobs to authenticated;
 grant update (
+  company_name,
+  company_authorized,
   title,
   department,
   location,
@@ -316,7 +330,7 @@ create policy "Owners can read their jobs"
   on public.jobs for select to authenticated
   using (owner_id = (select auth.uid()));
 
-create policy "Approved recruiters can create their own jobs"
+create policy "Recruiters can create their own jobs"
   on public.jobs for insert to authenticated
   with check (
     owner_id = (select auth.uid())
@@ -324,11 +338,11 @@ create policy "Approved recruiters can create their own jobs"
       select 1 from public.profiles p
       where p.id = (select auth.uid())
         and p.role = 'RECRUITER'
-        and p.recruiter_approved
+        and (jobs.status <> 'Active' or jobs.company_authorized)
     )
   );
 
-create policy "Approved recruiters can update their own jobs"
+create policy "Recruiters can update their own jobs"
   on public.jobs for update to authenticated
   using (
     owner_id = (select auth.uid())
@@ -336,7 +350,6 @@ create policy "Approved recruiters can update their own jobs"
       select 1 from public.profiles p
       where p.id = (select auth.uid())
         and p.role = 'RECRUITER'
-        and p.recruiter_approved
     )
   )
   with check (
@@ -345,11 +358,12 @@ create policy "Approved recruiters can update their own jobs"
       select 1 from public.profiles p
       where p.id = (select auth.uid())
         and p.role = 'RECRUITER'
-        and p.recruiter_approved
     )
+    and length(btrim(company_name)) between 1 and 120
+    and (jobs.status <> 'Active' or jobs.company_authorized)
   );
 
-create policy "Approved recruiters can delete their own jobs"
+create policy "Recruiters can delete their own jobs"
   on public.jobs for delete to authenticated
   using (
     owner_id = (select auth.uid())
@@ -357,7 +371,6 @@ create policy "Approved recruiters can delete their own jobs"
       select 1 from public.profiles p
       where p.id = (select auth.uid())
         and p.role = 'RECRUITER'
-        and p.recruiter_approved
     )
   );
 

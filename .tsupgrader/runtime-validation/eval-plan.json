@@ -18,7 +18,7 @@
       "kind": "process",
       "command": "npm",
       "args": ["run", "smoke"],
-      "verificationMethod": "test-results",
+      "verificationMethod": "exit-code",
       "expected": "0",
       "timeoutSeconds": 180
     },
@@ -36,8 +36,8 @@
       "name": "companies-route-200",
       "kind": "http-probe",
       "startCommand": "npm",
-      "startArgs": ["run", "dev", "--", "--host", "127.0.0.1", "--port", "4174", "--strictPort"],
-      "url": "http://127.0.0.1:4174/companies",
+      "startArgs": ["run", "dev", "--", "--host", "127.0.0.1", "--port", "4175", "--strictPort"],
+      "url": "http://127.0.0.1:4175/companies",
       "verificationMethod": "http-status",
       "expected": "200",
       "timeoutSeconds": 120

@@ -13,6 +13,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { useJobFilters } from '@/hooks/useJobFilters'
 import PageMetadata from '@/components/seo/PageMetadata'
 import { mountAdUnit } from '@/utils/adUnits'
+import { JobCategoryLinks } from './JobCategory'
 
 const PAGE_SIZE = 12
 const BANNER_AD_OPTIONS = {
@@ -150,6 +151,7 @@ export default function JobSearch() {
         <p className="mt-1.5 text-sm text-ink-500">
           Search across active openings at verified companies.
         </p>
+        <JobCategoryLinks className="mt-4" />
       </header>
 
       <SearchToolbar

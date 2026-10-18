@@ -5,6 +5,7 @@ const JOB_COLUMNS = [
   'id',
   'company_id',
   'company_name',
+  'company_authorized',
   'title',
   'department',
   'location',
@@ -40,6 +41,7 @@ function fromDatabase(row) {
     id: row.id,
     companyId: row.company_id,
     companyName: row.company_name,
+    companyAuthorized: row.company_authorized,
     company: row.company_name
       ? { id: row.company_id, name: row.company_name }
       : null,
@@ -74,6 +76,8 @@ function fromDatabase(row) {
 
 function toDatabase(payload) {
   const fields = {
+    companyName: 'company_name',
+    companyAuthorized: 'company_authorized',
     title: 'title',
     department: 'department',
     location: 'location',
@@ -142,12 +146,6 @@ async function currentProfile() {
   if (profile.status !== USER_STATUS.ACTIVE) {
     throw new Error('An active recruiter account is required to manage jobs.')
   }
-  if (!profile.company_name?.trim()) {
-    throw new Error(
-      'Your Supabase recruiter profile has no company name. Update public.profiles.company_name before posting jobs.',
-    )
-  }
-
   return { client, user: authData.user, profile }
 }
 
@@ -178,6 +176,7 @@ export async function listJobs({
   sort = 'relevance',
   page = 1,
   pageSize = 12,
+  includeFacets = true,
 } = {}) {
   const client = requireSupabase()
   let query = client
@@ -200,6 +199,11 @@ export async function listJobs({
     if (options.length === 1) query = query.eq(column, options[0])
     else if (options.length > 1) query = query.in(column, options)
   })
+
+  if (filters.experienceMax !== undefined) {
+    const maximum = Number(filters.experienceMax)
+    if (Number.isFinite(maximum)) query = query.lte('experience_min', maximum)
+  }
 
   if (values(filters.skills).length) query = query.contains('skills', values(filters.skills))
   const terms = String(filters.query ?? '')
@@ -249,7 +253,7 @@ export async function listJobs({
   const start = (safePage - 1) * pageSize
   let [{ data, error, count }, facets] = await Promise.all([
     query.range(start, start + pageSize - 1),
-    getFacets(),
+    includeFacets ? getFacets() : Promise.resolve(null),
   ])
   throwIfError(error)
   const totalItems = count ?? 0
