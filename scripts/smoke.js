@@ -72,6 +72,7 @@ function section(name) {
 const { db } = await import('../src/mock/db.js')
 const { buildSeed } = await import('../src/mock/seed/index.js')
 const { storage } = await import('../src/utils/storage.js')
+const { timeAgo } = await import('../src/utils/format.js')
 const jobs = await import('../src/mock/handlers/jobs.js')
 const companies = await import('../src/mock/handlers/companies.js')
 const applications = await import('../src/mock/handlers/applications.js')
@@ -159,6 +160,14 @@ check(
   [...new Set(seed.jobs.map((j) => j.status))].join(','),
 )
 check('db seeded to the same counts', db.count('jobs') === 27)
+check(
+  'recent posted times show hours rather than zero days',
+  timeAgo(new Date(Date.now() - 2 * 60 * 60 * 1000)) === '2 hours ago',
+)
+check(
+  'recent dates under a minute show just now',
+  timeAgo(new Date(Date.now() - 30 * 1000)) === 'just now',
+)
 
 section('Existing localStorage seed migration')
 storage.set('companies', seed.companies.filter((company) => company.id !== 'cmp-niti-technologies-india-software'))
@@ -938,6 +947,16 @@ const updatedLocalJob = await jobService.updateJob(localJob.id, {
 check(
   'jobService.updateJob persists local changes',
   updatedLocalJob.title === 'Updated local storage job',
+)
+check(
+  'editing a job refreshes its posted date',
+  new Date(updatedLocalJob.postedAt) > new Date(localJob.postedAt),
+)
+const trackedViewCount = await jobService.trackJobView(localJob.id)
+check(
+  'jobService.trackJobView increments the persisted view count',
+  trackedViewCount === updatedLocalJob.views + 1 &&
+    db.find('jobs', localJob.id)?.views === trackedViewCount,
 )
 const localPublicJobs = await jobService.listJobs({ pageSize: 100 })
 check(

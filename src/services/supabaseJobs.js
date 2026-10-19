@@ -385,7 +385,10 @@ export async function updateJob(id, payload) {
   const { client, user } = await currentProfile()
   const { data, error } = await client
     .from('jobs')
-    .update(toDatabase(payload))
+    .update({
+      ...toDatabase(payload),
+      posted_at: new Date().toISOString(),
+    })
     .eq('id', id)
     .eq('owner_id', user.id)
     .select('id')
@@ -393,6 +396,14 @@ export async function updateJob(id, payload) {
   throwIfError(error, 'update job')
   if (!data) throw new Error('Job not found or you do not have permission to edit it.')
   return readOwnedJob(client, data.id, user.id, 'read back updated job')
+}
+
+export async function incrementViews(id) {
+  const { data, error } = await requireSupabase().rpc('jobkhoj_increment_job_view', {
+    p_job_id: id,
+  })
+  throwIfError(error, 'increment job views')
+  return data
 }
 
 export async function deleteJob(id) {

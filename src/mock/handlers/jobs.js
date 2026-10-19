@@ -279,7 +279,12 @@ export async function updateJob(id, patch) {
     throw new Error('Confirm authorization to recruit for this company before publishing.')
   }
 
-  db.update('jobs', id, { ...next, updatedAt: new Date().toISOString() })
+  const updatedAt = new Date().toISOString()
+  db.update('jobs', id, {
+    ...next,
+    postedAt: updatedAt,
+    updatedAt,
+  })
 
   return getJob(id)
 }
@@ -312,7 +317,9 @@ export async function closeJob(id) {
 }
 
 export async function incrementViews(id) {
-  // Deliberately not awaited by callers — view counting must never block paint.
   const job = db.find('jobs', id)
-  if (job) db.update('jobs', id, { views: (job.views ?? 0) + 1 })
+  if (!job || job.status !== JOB_STATUS.ACTIVE) return null
+
+  const updated = db.update('jobs', id, { views: (job.views ?? 0) + 1 })
+  return updated?.views ?? null
 }

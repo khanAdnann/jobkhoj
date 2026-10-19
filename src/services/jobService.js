@@ -98,8 +98,8 @@ export const duplicateJob = (id) =>
 export const closeJob = (id) =>
   callJobStorage(() => supabaseJobs.closeJob(id), () => localJobs.closeJob(id))
 
-/**
- * Fire-and-forget view counter. Deliberately not awaited by callers — it must
- * never delay rendering the job page.
- */
-export const trackJobView = () => {}
+export const trackJobView = (id) =>
+  callJobStorage(
+    () => supabaseJobs.incrementViews(id),
+    () => localJobs.incrementViews(id),
+  )

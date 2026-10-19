@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -61,6 +61,10 @@ export default function JobDetails() {
   const [shareState, setShareState] = useState('idle')
   const [applyOpen, setApplyOpen] = useState(false)
   const [hasApplied, setHasApplied] = useState(false)
+  const [trackedViews, setTrackedViews] = useState(null)
+  const countedJobId = useRef(null)
+  const activeJobId = useRef(jobId)
+  activeJobId.current = jobId
 
   const { data: job, loading, error, refetch } = useFetch(() => getJob(jobId), [jobId])
 
@@ -68,10 +72,27 @@ export default function JobDetails() {
     initialData: [],
   })
 
-  /* Fire-and-forget view counter. */
   useEffect(() => {
-    if (jobId) trackJobView(jobId)
-  }, [jobId])
+    if (
+      !job ||
+      job.id !== jobId ||
+      !isPublicJob(job) ||
+      countedJobId.current === jobId
+    ) {
+      return
+    }
+
+    countedJobId.current = jobId
+    trackJobView(jobId)
+      .then((views) => {
+        if (activeJobId.current === jobId && Number.isFinite(views)) {
+          setTrackedViews({ jobId, count: views })
+        }
+      })
+      .catch((trackingError) => {
+        console.error('[job details] view tracking failed', trackingError)
+      })
+  }, [job, jobId])
 
   useEffect(() => {
     if (job && isPublicJob(job)) {
@@ -431,7 +452,9 @@ export default function JobDetails() {
                   <Eye className="h-3.5 w-3.5" aria-hidden="true" />
                   Views
                 </dt>
-                <dd className="font-semibold text-ink-800">{job.views ?? 0}</dd>
+                <dd className="font-semibold text-ink-800">
+                  {trackedViews?.jobId === job.id ? trackedViews.count : job.views ?? 0}
+                </dd>
               </div>
               <div className="flex items-center justify-between">
                 <dt className="flex items-center gap-1.5">

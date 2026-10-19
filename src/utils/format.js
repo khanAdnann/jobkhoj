@@ -63,16 +63,15 @@ export function timeAgo(value) {
   if (seconds < 60) return 'just now'
 
   const units = [
-    { limit: 60, size: 60, word: 'minute' },
-    { limit: 3600, size: 3600, word: 'hour' },
-    { limit: 86400, size: 86400, word: 'day' },
-    { limit: 2592000, size: 2592000, word: 'month' },
-    { limit: 31536000, size: 31536000, word: 'year' },
+    { limit: 3600, size: 60, word: 'minute' },
+    { limit: 86400, size: 3600, word: 'hour' },
+    { limit: 2592000, size: 86400, word: 'day' },
+    { limit: 31536000, size: 2592000, word: 'month' },
   ]
 
-  const divisor = units.find((u) => seconds < u.limit)?.size ?? 31536000
-  const count = Math.floor(seconds / divisor)
-  const word = units.find((u) => seconds < u.limit)?.word ?? 'year'
+  const unit = units.find(({ limit }) => seconds < limit)
+  const count = Math.floor(seconds / (unit?.size ?? 31536000))
+  const word = unit?.word ?? 'year'
 
   return `${count} ${word}${count === 1 ? '' : 's'} ago`
 }
