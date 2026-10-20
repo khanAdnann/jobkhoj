@@ -25,6 +25,7 @@ import {
   WORK_MODES,
 } from '@/utils/constants'
 import { PATHS } from '@/routes/paths'
+import { normalizeExternalApplicationUrl } from '@/utils/jobSeo'
 
 /**
  * Create / edit job form (PRD section 16).
@@ -76,6 +77,7 @@ export default function JobForm({ mode = 'create' }) {
       requirements: [],
       benefits: [],
       deadline: '',
+      applicationUrl: '',
     },
   })
 
@@ -106,6 +108,7 @@ export default function JobForm({ mode = 'create' }) {
       requirements: job.requirements ?? [],
       benefits: job.benefits ?? [],
       deadline: job.deadline?.slice(0, 10) ?? '',
+      applicationUrl: job.applicationUrl ?? '',
     })
   }, [existing.data, reset])
 
@@ -148,6 +151,7 @@ export default function JobForm({ mode = 'create' }) {
       experienceLabel: `${Number(values.experienceMin)}-${Number(values.experienceMax)} Years`,
       openings: Number(values.openings),
       deadline: values.deadline || null,
+      applicationUrl: normalizeExternalApplicationUrl(values.applicationUrl),
       status,
     }
 
@@ -320,6 +324,26 @@ export default function JobForm({ mode = 'create' }) {
                 <Input id="deadline" type="date" {...register('deadline')} />
               </Field>
             </div>
+
+            <Field
+              label="External application link"
+              htmlFor="applicationUrl"
+              error={errors.applicationUrl?.message}
+              hint="Optional. Candidates will be sent to this company or LinkedIn job posting when they click Apply. Use an http:// or https:// URL."
+            >
+              <Input
+                id="applicationUrl"
+                type="url"
+                placeholder="https://www.linkedin.com/jobs/view/..."
+                maxLength={2048}
+                {...register('applicationUrl', {
+                  validate: (value) =>
+                    !String(value ?? '').trim() ||
+                    Boolean(normalizeExternalApplicationUrl(value)) ||
+                    'Enter a valid company or LinkedIn job URL beginning with http:// or https://',
+                })}
+              />
+            </Field>
           </div>
         </Card>
 

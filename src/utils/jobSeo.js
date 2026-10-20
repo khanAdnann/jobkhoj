@@ -2,6 +2,19 @@ import { JOB_STATUS } from './constants'
 
 export const SITE_ORIGIN = 'https://jobkhoj-theta.vercel.app'
 
+export function normalizeExternalApplicationUrl(value) {
+  const input = String(value ?? '').trim()
+  if (!input) return null
+
+  try {
+    const url = new URL(input)
+    if (!['http:', 'https:'].includes(url.protocol) || !url.hostname) return null
+    return url.toString()
+  } catch {
+    return null
+  }
+}
+
 export function slugifyJobText(value) {
   return String(value ?? '')
     .normalize('NFKD')
@@ -119,7 +132,7 @@ export function createJobPosting(job, now = new Date()) {
       name: 'JobKhoj',
       value: String(job.id),
     },
-    directApply: true,
+    directApply: !normalizeExternalApplicationUrl(job.applicationUrl),
   }
 
   if (job.deadline) posting.validThrough = `${String(job.deadline).slice(0, 10)}T23:59:59`

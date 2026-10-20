@@ -1,4 +1,5 @@
 import { JOB_STATUS, USER_STATUS } from '@/utils/constants'
+import { selectRandomJobs } from '@/utils/jobSelection'
 import { requireSupabase } from './supabaseClient'
 
 const JOB_COLUMNS = [
@@ -6,6 +7,7 @@ const JOB_COLUMNS = [
   'company_id',
   'company_name',
   'company_authorized',
+  'application_url',
   'title',
   'department',
   'location',
@@ -42,6 +44,7 @@ function fromDatabase(row) {
     companyId: row.company_id,
     companyName: row.company_name,
     companyAuthorized: row.company_authorized,
+    applicationUrl: row.application_url,
     company: row.company_name
       ? { id: row.company_id, name: row.company_name }
       : null,
@@ -78,6 +81,7 @@ function toDatabase(payload) {
   const fields = {
     companyName: 'company_name',
     companyAuthorized: 'company_authorized',
+    applicationUrl: 'application_url',
     title: 'title',
     department: 'department',
     location: 'location',
@@ -173,7 +177,7 @@ export async function getJob(id) {
 
 export async function listJobs({
   filters = {},
-  sort = 'relevance',
+  sort = 'newest',
   page = 1,
   pageSize = 12,
   includeFacets = true,
@@ -288,9 +292,9 @@ export async function getFeaturedJobs(limit = 6) {
     .eq('featured', true)
     .or(`deadline.is.null,deadline.gte.${new Date().toISOString().slice(0, 10)}`)
     .order('posted_at', { ascending: false })
-    .limit(limit)
+    .limit(100)
   throwIfError(error)
-  return (data ?? []).map(fromDatabase)
+  return selectRandomJobs((data ?? []).map(fromDatabase), limit)
 }
 
 export async function getSimilarJobs(id, limit = 6) {

@@ -49,7 +49,7 @@ export function useJobFilters() {
     return next
   }, [searchParams])
 
-  const sort = searchParams.get('sort') ?? 'relevance'
+  const sort = searchParams.get('sort') ?? 'newest'
   const page = Number(searchParams.get('page')) || 1
 
   /**
@@ -74,7 +74,7 @@ export function useJobFilters() {
       if (source.salaryMax) params.set('salaryMax', String(source.salaryMax))
 
       const nextSort = options.sort ?? sort
-      if (nextSort && nextSort !== 'relevance') params.set('sort', nextSort)
+      if (nextSort && nextSort !== 'newest') params.set('sort', nextSort)
 
       const nextPage = options.page ?? 1
       if (nextPage > 1) params.set('page', String(nextPage))

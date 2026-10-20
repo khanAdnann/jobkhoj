@@ -38,7 +38,10 @@ are never replaced with mock data. Never put a Supabase service-role key in a
    Active job posts require the recruiter to confirm they are authorized to
    recruit for the named company. Custom names are displayed as recruiter-
    provided and are not independently verified or linked to a verified
-   company directory entry.
+   company directory entry. Also apply
+   [`20261019010000_add_external_job_application_url.sql`](./supabase/migrations/20261019010000_add_external_job_application_url.sql)
+   to let recruiters optionally link directly to an external company or
+   LinkedIn job application.
 3. Set the Supabase project's URL and **publishable** key under
    **Project Settings → API Keys**. In local `.env`, map them to:
 

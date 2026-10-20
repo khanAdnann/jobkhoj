@@ -40,6 +40,14 @@ create table public.jobs (
   company_id text,
   company_name text not null,
   company_authorized boolean not null default false,
+  application_url text
+    check (
+      application_url is null
+      or (
+        length(application_url) <= 2048
+        and application_url ~* '^https?://[^[:space:]]+$'
+      )
+    ),
   title text not null
     check (length(btrim(title)) between 1 and 80),
   department text not null default '' check (length(btrim(department)) > 0),
@@ -242,6 +250,7 @@ grant select (
   company_id,
   company_name,
   company_authorized,
+  application_url,
   title,
   department,
   location,
@@ -275,6 +284,7 @@ grant insert (
   owner_id,
   company_name,
   company_authorized,
+  application_url,
   title,
   department,
   location,
@@ -299,6 +309,7 @@ grant insert (
 grant update (
   company_name,
   company_authorized,
+  application_url,
   title,
   department,
   location,

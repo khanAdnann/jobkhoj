@@ -73,6 +73,11 @@ const { db } = await import('../src/mock/db.js')
 const { buildSeed } = await import('../src/mock/seed/index.js')
 const { storage } = await import('../src/utils/storage.js')
 const { timeAgo } = await import('../src/utils/format.js')
+const { selectRandomJobs } = await import('../src/utils/jobSelection.js')
+const {
+  createJobPosting,
+  normalizeExternalApplicationUrl,
+} = await import('../src/utils/jobSeo.js')
 const jobs = await import('../src/mock/handlers/jobs.js')
 const companies = await import('../src/mock/handlers/companies.js')
 const applications = await import('../src/mock/handlers/applications.js')
@@ -168,6 +173,23 @@ check(
   'recent dates under a minute show just now',
   timeAgo(new Date(Date.now() - 30 * 1000)) === 'just now',
 )
+check(
+  'external application links accept HTTPS URLs and reject unsafe schemes',
+  normalizeExternalApplicationUrl(' https://www.linkedin.com/jobs/view/123 ') ===
+    'https://www.linkedin.com/jobs/view/123' &&
+    normalizeExternalApplicationUrl('javascript:alert(1)') === null,
+)
+const randomCandidates = Array.from({ length: 10 }, (_, index) => ({ id: `candidate-${index}` }))
+const firstFeaturedSelection = selectRandomJobs(randomCandidates, 6, () => 0)
+const secondFeaturedSelection = selectRandomJobs(randomCandidates, 6, () => 0.99)
+check(
+  'featured job selection rotates the candidate set',
+  firstFeaturedSelection.length === 6 &&
+    secondFeaturedSelection.length === 6 &&
+    firstFeaturedSelection.some(
+      (job) => !secondFeaturedSelection.some((other) => other.id === job.id),
+    ),
+)
 
 section('Existing localStorage seed migration')
 storage.set('companies', seed.companies.filter((company) => company.id !== 'cmp-niti-technologies-india-software'))
@@ -229,6 +251,14 @@ check(
   'newest sort is descending by date',
   newest.every((job, i) => i === 0 || new Date(newest[i - 1].postedAt) >= new Date(job.postedAt)),
 )
+const defaultSorted = query.applySort(allActive)
+check(
+  'default job search sorting puts newest postings first',
+  defaultSorted.every(
+    (job, index) =>
+      index === 0 || new Date(defaultSorted[index - 1].postedAt) >= new Date(job.postedAt),
+  ),
+)
 
 const highestPaid = query.applySort(allActive, 'salary-desc')
 check(
@@ -258,6 +288,12 @@ check('featured list is all ACTIVE', featured.every((job) => job.status === JOB_
 const detail = await jobs.getJob('job-1001')
 check('getJob returns the role', detail.title === 'Java Backend Developer')
 check('getJob hydrates the company', detail.company.name === 'Tata Consultancy Services')
+check(
+  'JobPosting schema reflects whether applications are external',
+  createJobPosting(detail)?.directApply === true &&
+    createJobPosting({ ...detail, applicationUrl: 'https://example.com/careers/123' })
+      ?.directApply === false,
+)
 
 const similar = await jobs.getSimilarJobs('job-1001', 6)
 check('similar jobs returned', similar.length > 0 && similar.length <= 6)
@@ -919,6 +955,7 @@ check(
 await auth.login({ email: 'recruiter@jobkhoj.in', password: 'x' })
 const localJob = await jobService.createJob({
   title: 'Local storage persistence test',
+  applicationUrl: 'https://www.linkedin.com/jobs/view/123',
   companyId: 'cmp-tcs',
   companyAuthorized: true,
   createdBy: 'usr-recruiter-1',
@@ -934,7 +971,8 @@ const localJob = await jobService.createJob({
 })
 check(
   'jobService.createJob persists local job in localStorage-backed database',
-  db.find('jobs', localJob.id)?.title === 'Local storage persistence test',
+  db.find('jobs', localJob.id)?.title === 'Local storage persistence test' &&
+    localJob.applicationUrl === 'https://www.linkedin.com/jobs/view/123',
 )
 const localRecruiterJobs = await recruiterService.getRecruiterJobs({})
 check(
@@ -946,7 +984,8 @@ const updatedLocalJob = await jobService.updateJob(localJob.id, {
 })
 check(
   'jobService.updateJob persists local changes',
-  updatedLocalJob.title === 'Updated local storage job',
+  updatedLocalJob.title === 'Updated local storage job' &&
+    updatedLocalJob.applicationUrl === 'https://www.linkedin.com/jobs/view/123',
 )
 check(
   'editing a job refreshes its posted date',

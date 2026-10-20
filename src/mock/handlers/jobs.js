@@ -3,6 +3,8 @@ import { delay } from './latency'
 import { queryJobs, sortByKey } from './query'
 import { getCurrentUserId } from './auth'
 import { JOB_STATUS } from '@/utils/constants'
+import { normalizeExternalApplicationUrl } from '@/utils/jobSeo'
+import { selectRandomJobs } from '@/utils/jobSelection'
 
 /**
  * Job mock handlers.
@@ -62,11 +64,20 @@ function resolveCompany(payload, fallback = {}) {
   }
 }
 
+function resolveApplicationUrl(value, fallback) {
+  if (value === undefined) return fallback ?? null
+  const normalized = normalizeExternalApplicationUrl(value)
+  if (String(value ?? '').trim() && !normalized) {
+    throw new Error('Enter a valid company or LinkedIn job URL beginning with https://')
+  }
+  return normalized
+}
+
 /* --------------------------------- reads ---------------------------------- */
 
 export async function listJobs({
   filters = {},
-  sort = 'relevance',
+  sort = 'newest',
   page = 1,
   pageSize = 12,
 } = {}) {
@@ -142,12 +153,12 @@ export async function getFeaturedJobs(limit = 6) {
   await delay()
   const companies = companyMap()
 
-  return db
+  const featuredJobs = db
     .all('jobs')
     .filter((job) => job.status === JOB_STATUS.ACTIVE && job.featured)
     .sort((a, b) => new Date(b.postedAt) - new Date(a.postedAt))
-    .slice(0, limit)
-    .map((job) => hydrate(job, companies))
+
+  return selectRandomJobs(featuredJobs, limit).map((job) => hydrate(job, companies))
 }
 
 export async function getJobsByCompany(companyId, { page = 1, pageSize = 10 } = {}) {
@@ -228,6 +239,7 @@ export async function createJob(payload) {
       companyId,
       companyName,
       companyAuthorized: payload.companyAuthorized ?? false,
+      applicationUrl: resolveApplicationUrl(payload.applicationUrl),
       department: payload.department,
       location: payload.location,
       workMode: payload.workMode,
@@ -265,6 +277,9 @@ export async function updateJob(id, patch) {
   if (!existing) throw new Error('Job not found')
 
   const next = { ...patch }
+  if (patch.applicationUrl !== undefined) {
+    next.applicationUrl = resolveApplicationUrl(patch.applicationUrl, existing.applicationUrl)
+  }
   if (patch.companyName !== undefined || patch.companyId !== undefined) {
     Object.assign(next, resolveCompany(patch, existing))
   }

@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Clock,
   Eye,
+  ExternalLink,
   GraduationCap,
   MapPin,
   Share2,
@@ -42,6 +43,7 @@ import {
   getJobIdFromRouteParam,
   getJobSummary,
   isPublicJob,
+  normalizeExternalApplicationUrl,
   serializeJobPosting,
 } from '@/utils/jobSeo'
 
@@ -183,6 +185,13 @@ export default function JobDetails() {
   const isClosed = !isIndexable
   const companyName = job.company?.name ?? job.companyName ?? 'JobKhoj'
   const canonicalPath = getJobDetailsPath(job)
+  const externalApplicationUrl = normalizeExternalApplicationUrl(job.applicationUrl)
+  const externalApplicationHost = externalApplicationUrl
+    ? new URL(externalApplicationUrl).hostname.toLowerCase()
+    : ''
+  const externalApplicationLabel = externalApplicationHost.endsWith('linkedin.com')
+    ? 'Apply on LinkedIn'
+    : 'Apply on company website'
   const salaryAvailable =
     (Number.isFinite(Number(job.salaryMin)) && Number(job.salaryMin) > 0) ||
     (Number.isFinite(Number(job.salaryMax)) && Number(job.salaryMax) > 0)
@@ -284,12 +293,25 @@ export default function JobDetails() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  onClick={handleApply}
-                  disabled={isClosed || alreadyApplied}
-                >
-                  {alreadyApplied ? 'Already applied' : isClosed ? 'Closed' : 'Apply Now'}
-                </Button>
+                {externalApplicationUrl ? (
+                  <Button
+                    as="a"
+                    href={externalApplicationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    disabled={isClosed}
+                  >
+                    {isClosed ? 'Closed' : externalApplicationLabel}
+                    {!isClosed && <ExternalLink className="h-4 w-4" aria-hidden="true" />}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleApply}
+                    disabled={isClosed || alreadyApplied}
+                  >
+                    {alreadyApplied ? 'Already applied' : isClosed ? 'Closed' : 'Apply Now'}
+                  </Button>
+                )}
                 <Button variant="outline" onClick={handleShare}>
                   <Share2 className="h-4 w-4" aria-hidden="true" />
                   {shareState === 'copied' ? 'Copied' : 'Share'}
@@ -431,15 +453,30 @@ export default function JobDetails() {
         {/* ------------------------------- sidebar ------------------------------ */}
         <aside className="mt-6 space-y-4 lg:sticky lg:top-24 lg:mt-0">
           <Card className="text-center">
-            <Button
-              fullWidth
-              size="lg"
-              variant={alreadyApplied ? 'success' : 'primary'}
-              disabled={isClosed || alreadyApplied}
-              onClick={handleApply}
-            >
-              {alreadyApplied ? 'Already applied' : isClosed ? 'Applications closed' : 'Apply now'}
-            </Button>
+            {externalApplicationUrl ? (
+              <Button
+                as="a"
+                href={externalApplicationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                fullWidth
+                size="lg"
+                disabled={isClosed}
+              >
+                {isClosed ? 'Applications closed' : externalApplicationLabel}
+                {!isClosed && <ExternalLink className="h-4 w-4" aria-hidden="true" />}
+              </Button>
+            ) : (
+              <Button
+                fullWidth
+                size="lg"
+                variant={alreadyApplied ? 'success' : 'primary'}
+                disabled={isClosed || alreadyApplied}
+                onClick={handleApply}
+              >
+                {alreadyApplied ? 'Already applied' : isClosed ? 'Applications closed' : 'Apply now'}
+              </Button>
+            )}
 
             <Button variant="outline" fullWidth className="mt-3" onClick={handleShare}>
               <Share2 className="h-4 w-4" aria-hidden="true" />

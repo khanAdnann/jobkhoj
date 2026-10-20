@@ -138,7 +138,7 @@ export function applyFilters(jobs, filters = {}, companyById = new Map()) {
 /**
  * @param {'relevance'|'newest'|'oldest'|'salary-desc'|'salary-asc'} sort
  */
-export function applySort(jobs, sort = 'relevance') {
+export function applySort(jobs, sort = 'newest') {
   const sorted = [...jobs]
 
   switch (sort) {
@@ -162,7 +162,7 @@ export function applySort(jobs, sort = 'relevance') {
 }
 
 /** Combines the full pipeline: filter -> sort -> paginate. */
-export function queryJobs(jobs, { filters = {}, sort = 'relevance', page = 1, pageSize = 12 } = {}, companyById) {
+export function queryJobs(jobs, { filters = {}, sort = 'newest', page = 1, pageSize = 12 } = {}, companyById) {
   const filtered = applyFilters(jobs, filters, companyById)
   const sorted = applySort(filtered, sort)
   return paginate(sorted, page, pageSize)
