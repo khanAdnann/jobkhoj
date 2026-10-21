@@ -285,7 +285,7 @@ export async function searchCandidates({
     items: (data ?? []).map((row) => ({
       id: row.id,
       name: row.name,
-      avatar: row.avatar_url,
+      avatarUrl: row.avatar_url,
       location: row.location,
       headline: row.headline,
       yearsOfExperience: row.years_of_experience,
@@ -309,10 +309,15 @@ export async function getCandidateById(id) {
     .eq('applicant_id', id)
     .order('applied_at', { ascending: false })
   fail(applicationsError, 'load candidate applications')
+  const mappedApplications = (await attachResumeUrls(client, applications)).map(fromRow)
+  const latestApplication = mappedApplications[0]
   return {
     ...candidate,
-    avatar: candidate.avatar_url,
+    avatarUrl: candidate.avatar_url,
     yearsOfExperience: candidate.years_of_experience,
-    applications: (await attachResumeUrls(client, applications)).map(fromRow),
+    email: latestApplication?.candidateEmail ?? '',
+    phone: latestApplication?.candidatePhone ?? '',
+    createdAt: candidate.created_at,
+    applications: mappedApplications,
   }
 }

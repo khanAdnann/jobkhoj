@@ -378,7 +378,7 @@ function CandidateDrawer({ candidateId, onClose }) {
           }
         />
       ) : candidate ? (
-        <div className="space-y-6">
+        <div className="space-y-6 p-4">
           <div className="flex items-start gap-3">
             <Avatar name={candidate.name} size="lg" src={candidate.avatarUrl} />
             <div className="min-w-0">

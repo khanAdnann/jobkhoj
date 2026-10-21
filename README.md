@@ -41,7 +41,10 @@ are never replaced with mock data. Never put a Supabase service-role key in a
    company directory entry. Also apply
    [`20261019010000_add_external_job_application_url.sql`](./supabase/migrations/20261019010000_add_external_job_application_url.sql)
    to let recruiters optionally link directly to an external company or
-   LinkedIn job application.
+   LinkedIn job application. Finally, apply
+   [`20261021000000_backfill_missing_profiles.sql`](./supabase/migrations/20261021000000_backfill_missing_profiles.sql)
+   to create profiles for Auth users who signed up before the profile trigger
+   was installed. It is safe to rerun and leaves existing profiles unchanged.
 3. Set the Supabase project's URL and **publishable** key under
    **Project Settings → API Keys**. In local `.env`, map them to:
 
