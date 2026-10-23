@@ -3,7 +3,7 @@ import { Card, Button, Input, Select, Textarea } from '@/components/common'
 import ToolShell from '@/components/tools/ToolShell'
 import ToolErrorNotice from '@/components/tools/ToolErrorNotice'
 import ResultActions from '@/components/tools/ResultActions'
-import { generateCoverLetter, TONES, LENGTHS } from '@/services/coverLetterService'
+import { generateCoverLetter, generateCoverLetterAsync, TONES, LENGTHS } from '@/services/coverLetterService'
 import { consumeUsage, saveResult } from '@/services/toolsService'
 import { downloadText } from '@/utils/download'
 import { useToast } from '@/hooks/useToast'
@@ -28,12 +28,12 @@ export default function CoverLetter() {
 
   const ready = !busy && form.jobTitle.trim().length > 0
 
-  function run() {
+  async function run() {
     setBusy(true)
     setError(null)
     try {
       consumeUsage('coverLetter')
-      const letter = generateCoverLetter({
+      const letter = await generateCoverLetterAsync({
         candidateName: form.candidateName,
         jobTitle: form.jobTitle,
         company: form.company,

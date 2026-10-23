@@ -3,10 +3,12 @@ import { Card, Button, Input, Select } from '@/components/common'
 import ToolShell from '@/components/tools/ToolShell'
 import ToolErrorNotice from '@/components/tools/ToolErrorNotice'
 import ResultActions from '@/components/tools/ResultActions'
+import MockInterview from '@/components/ai/MockInterview'
 import { generateQuestionSetAsync, DIFFICULTIES } from '@/services/interviewService'
 import { consumeUsage, saveResult } from '@/services/toolsService'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/utils/cn'
+import { Sparkles, ListFilter } from 'lucide-react'
 
 const DIFFICULTY_TONES = {
   Easy: 'bg-success-50 text-success-700',
@@ -29,6 +31,7 @@ function summaryOf(result) {
 
 export default function InterviewQuestions() {
   const toast = useToast()
+  const [activeTab, setActiveTab] = useState('interactive')
   const [form, setForm] = useState({
     jobTitle: '',
     experience: '3',
@@ -79,13 +82,47 @@ export default function InterviewQuestions() {
   return (
     <ToolShell
       toolId="interview-questions"
-      title="Interview Question Generator"
-      blurb="Role-specific questions across core, scenario and system-design rounds, matched to your skills and seniority."
+      title="Interview Preparation & Mock Interviews"
+      blurb="Practice live 1-on-1 technical mock interviews with AI evaluation, or generate curated question sets."
       icon="MessagesSquare"
-      badge="AI-ready"
+      badge="AI-Powered"
       bucket="interviewSet"
     >
-      <Card>
+      {/* Mode Switcher Tabs */}
+      <div className="mb-6 flex rounded-xl bg-ink-100 p-1">
+        <button
+          type="button"
+          onClick={() => setActiveTab('interactive')}
+          className={cn(
+            'flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-semibold transition-all',
+            activeTab === 'interactive'
+              ? 'bg-white text-brand-700 shadow-xs'
+              : 'text-ink-600 hover:text-ink-900',
+          )}
+        >
+          <Sparkles className="h-4 w-4 text-brand-600" />
+          Interactive AI Mock Interview (Live)
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('generator')}
+          className={cn(
+            'flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-xs font-semibold transition-all',
+            activeTab === 'generator'
+              ? 'bg-white text-brand-700 shadow-xs'
+              : 'text-ink-600 hover:text-ink-900',
+          )}
+        >
+          <ListFilter className="h-4 w-4 text-ink-500" />
+          Question Bank Generator
+        </button>
+      </div>
+
+      {activeTab === 'interactive' ? (
+        <MockInterview />
+      ) : (
+        <>
+          <Card>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input label="Job title" value={form.jobTitle} onChange={patch('jobTitle')} placeholder="Backend Engineer" required />
           <Input
@@ -179,6 +216,8 @@ export default function InterviewQuestions() {
             />
           </Card>
         </div>
+      )}
+        </>
       )}
     </ToolShell>
   )

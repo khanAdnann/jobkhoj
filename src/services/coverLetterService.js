@@ -1,5 +1,6 @@
 import { parseJobDescription } from '@/tools/engine/jd.js'
 import { matchTerms, uniq } from '@/tools/engine/text.js'
+import { generateCoverLetterWithAi } from './aiService'
 import * as tools from './toolsService'
 
 /**
@@ -141,6 +142,55 @@ export function generateCoverLetter(input = {}) {
   })
 
   return result
+}
+
+/**
+ * Asynchronous cover letter generator leveraging Ollama with automatic fallback.
+ */
+export async function generateCoverLetterAsync(input = {}) {
+  try {
+    const aiData = await generateCoverLetterWithAi({
+      candidateName: input.candidateName,
+      skills: (input.skills || '').split(',').map((s) => s.trim()).filter(Boolean),
+      experienceYears: parseInt(input.experience, 10) || 0,
+      jobTitle: input.jobTitle,
+      companyName: input.company,
+      jobDescription: input.jobDescription,
+      tone: input.tone,
+    })
+
+    if (aiData?.coverLetter) {
+      const text = aiData.coverLetter
+      const paragraphs = text.split('\n\n').filter(Boolean)
+      const wordCount = text.split(/\s+/).filter(Boolean).length
+
+      tools.recordHistory({
+        toolId: 'cover-letter',
+        tool: 'Cover Letter Generator',
+        fileName: input.company ? `${input.company} cover letter` : input.jobTitle || 'Cover letter',
+        summary: `${input.tone} · ${wordCount} words (AI Generated)`,
+      })
+
+      return {
+        text,
+        paragraphs,
+        wordCount,
+        tone: input.tone,
+        length: input.length,
+        meta: {
+          mode: 'ai',
+          aiReady: true,
+          endpoint: '/api/ai/cover-letter',
+          note: aiData.offlineNotice || 'Custom tailored by JobKhoj AI (Ollama).',
+        },
+      }
+    }
+  } catch (err) {
+    console.warn('[CoverLetterService] AI generation fallback:', err.message)
+  }
+
+  // Graceful fallback to deterministic local composer
+  return generateCoverLetter(input)
 }
 
 /** Payload contract for a future LLM call — mirrors generateCoverLetter input. */

@@ -6,6 +6,9 @@
   "description": "JobKhoj - a modern job portal / recruitment platform",
   "scripts": {
     "dev": "vite",
+    "server": "node server/index.js",
+    "server:dev": "node server/index.js",
+    "test:ai": "node server/tests/runTests.js && node server/tests/mockOllamaTest.js",
     "prebuild": "node scripts/generate-sitemap.js",
     "build": "vite build",
     "preview": "vite preview",

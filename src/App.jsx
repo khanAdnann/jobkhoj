@@ -5,6 +5,7 @@ import ToastProvider from '@/context/ToastProvider'
 import ToastViewport from '@/components/common/ToastViewport'
 import ScrollToTop from '@/components/layout/ScrollToTop'
 import FullPageLoader from '@/components/layout/FullPageLoader'
+import AICareerAssistant from '@/components/ai/AICareerAssistant'
 import AppRoutes from '@/routes/AppRoutes'
 
 /**
@@ -22,6 +23,7 @@ export default function App() {
         <ToastViewport />
         <AuthProvider>
           <ScrollToTop />
+          <AICareerAssistant />
           <Suspense fallback={<FullPageLoader label="Loading page…" />}>
             <AppRoutes />
           </Suspense>
